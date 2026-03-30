@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     "apps.core",
     "apps.auth_app",
     "apps.dashboard",
+    "apps.mes",
     "apps.semana",
     "apps.dia",
     "apps.pagos",

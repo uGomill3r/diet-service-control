@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Vista Mensual — {{ nombre_mes }} {{ anio }}{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+  <h2 class="mb-0 text-capitalize">{{ nombre_mes }} {{ anio }}</h2>
+  <div class="d-flex gap-2">
+    <a href="/mes?mes={{ mes_anterior.mes }}&anio={{ mes_anterior.anio }}"
+       class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-chevron-left"></i> Mes anterior
+    </a>
+    <a href="/mes" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-calendar-check me-1"></i>Hoy
+    </a>
+    <a href="/mes?mes={{ mes_siguiente.mes }}&anio={{ mes_siguiente.anio }}"
+       class="btn btn-outline-secondary btn-sm">
+      Mes siguiente <i class="bi bi-chevron-right"></i>
+    </a>
+  </div>
+</div>
+
+{# Leyenda de colores #}
+<div class="d-flex gap-3 mb-3 flex-wrap">
+  <span class="badge bg-success">Entregado</span>
+  <span class="badge bg-warning text-dark">Pedido / pendiente</span>
+  <span class="badge bg-danger">No entregado</span>
+  <span class="badge bg-light text-dark border">Sin pedido</span>
+  <span class="badge bg-info text-white">Feriado</span>
+</div>
+
+{# Encabezados lunes a viernes #}
+<div class="row g-1 mb-1 text-center">
+  {# Espacio para la columna del número de semana #}
+  <div class="col-auto" style="width: 2.6rem;"></div>
+  {% for nombre in cabecera_semana %}
+    <div class="col">
+      <small class="fw-bold text-muted text-uppercase">{{ nombre }}</small>
+    </div>
+  {% endfor %}
+</div>
+
+{# Grilla de semanas — solo días hábiles #}
+{% for semana in semanas %}
+  <div class="row g-1 mb-1 align-items-stretch">
+    {# Botón número de semana → navega a vista semanal #}
+    <div class="col-auto d-flex" style="width: 2.6rem;">
+      <a href="/semana?semana={{ semana.numero }}"
+         class="btn btn-sm btn-outline-secondary w-100 p-0 lh-1 d-flex flex-column align-items-center justify-content-center"
+         style="font-size: 0.7rem;"
+         title="Ir a semana {{ semana.numero }}">
+        <span>S</span>
+        <span class="fw-bold">{{ semana.numero }}</span>
+      </a>
+    </div>
+
+    {# Cinco columnas: lunes a viernes #}
+    {% for dia in semana.dias %}
+      <div class="col">
+        {% if dia %}
+          <div class="card h-100 shadow-sm {% if dia.es_hoy %}border-primary border-2{% endif %}"
+               onclick="location.href='/ver_dia?fecha={{ dia.fecha }}'"
+               style="cursor: pointer; min-height: 80px;">
+            <div class="card-header p-1 text-center
+                        {% if dia.feriado %}bg-info text-white
+                        {% elif dia.es_hoy %}bg-primary text-white
+                        {% else %}bg-light
+                        {% endif %}">
+              <span class="fw-bold" style="font-size: 0.9rem;">{{ dia.numero }}</span>
+            </div>
+            <div class="card-body p-1 text-center">
+              {% if dia.feriado %}
+                <span class="badge bg-info w-100 mb-1" style="font-size: 0.6rem;">Feriado</span>
+              {% else %}
+                <span class="badge bg-{{ dia.estado.almuerzo }} w-100 mb-1
+                             {% if dia.estado.almuerzo == 'warning' %}text-dark{% endif %}"
+                      style="font-size: 0.6rem;">A</span>
+                <span class="badge bg-{{ dia.estado.cena }} w-100
+                             {% if dia.estado.cena == 'warning' %}text-dark{% endif %}"
+                      style="font-size: 0.6rem;">C</span>
+              {% endif %}
+            </div>
+          </div>
+        {% else %}
+          {# Celda vacía — inicio de semana con días fuera del mes #}
+          <div class="card h-100 border-0 bg-transparent" style="min-height: 80px;"></div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+{% endfor %}
+
+<div class="mt-3">
+  <p class="text-muted small mb-0">
+    <i class="bi bi-info-circle me-1"></i>
+    Haz clic en <strong>S·N</strong> para ir a la vista semanal detallada,
+    o en cualquier día para ver su detalle.
+  </p>
+</div>
+{% endblock %}

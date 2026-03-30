@@ -16,6 +16,10 @@
       .container {
         flex: 1;
       }
+      /* Submenú: quita la separación de dropdown en mobile */
+      .navbar .dropdown-menu {
+        min-width: 10rem;
+      }
     </style>
 </head>
 <body class="bg-light">
@@ -36,11 +40,27 @@
                 <i class="bi bi-bar-chart-fill me-2"></i>Resumen
               </a>
             </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/semana">
+
+            {# Submenú Semana / Mes #}
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navVistas" role="button"
+                 data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="bi bi-calendar-week me-2"></i>Semana
               </a>
+              <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navVistas">
+                <li>
+                  <a class="dropdown-item" href="/semana">
+                    <i class="bi bi-calendar-week me-2"></i>Vista semanal
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="/mes">
+                    <i class="bi bi-calendar-month me-2"></i>Vista mensual
+                  </a>
+                </li>
+              </ul>
             </li>
+
             <li class="nav-item">
               <a class="nav-link" href="/pagos">
                 <i class="bi bi-cash-coin me-2"></i>Pagos
@@ -53,7 +73,7 @@
             </li>
             <li class="nav-item">
               <a class="nav-link" href="/importar">
-                <i class="bi bi-envelope-arrow-up me-2"></i>Importar
+                <i class="bi bi-file-earmark-arrow-up me-2"></i>Importar
               </a>
             </li>
           </ul>
