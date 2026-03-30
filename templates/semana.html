@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Vista Semanal{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Semana {{ semana }}</h2>
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-5 g-3">
+  {% for dia in semana_data %}
+    <div class="col">
+      <div class="card h-100 shadow-sm" onclick="location.href='/ver_dia?fecha={{ dia.fecha }}'" style="cursor:pointer;">
+        <div class="card-header text-center fw-bold">
+          {{ dia.dia }}<br><span class="text-muted">{{ dia.fecha }}</span>
+        </div>
+        <div class="card-body text-center">
+          {% if dia.feriado %}
+            <div class="mb-2">
+              <span class="badge rounded-pill bg-info text-white">Feriado</span>
+            </div>
+          {% endif %}
+          <div class="mb-2">
+            <span class="badge rounded-pill bg-{{ dia.estado.almuerzo }}">Almuerzo</span>
+          </div>
+          <div class="mb-2">
+            <span class="badge rounded-pill bg-{{ dia.estado.cena }}">Cena</span>
+          </div>
+          {% if dia.texto_estado %}
+            <div class="small
+                        {% if dia.texto_estado == 'Feriado' %}
+                          text-info fw-bold
+                        {% elif 'pendiente' in dia.texto_estado %}
+                          text-warning
+                        {% elif dia.texto_estado == 'Entregado' %}
+                          text-success
+                        {% else %}
+                          text-muted
+                        {% endif %}">
+              {{ dia.texto_estado }}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+<div class="mt-4 d-flex justify-content-between">
+  <a href="/semana?semana={{ semana - 1 }}" class="btn btn-outline-secondary">← Semana anterior</a>
+  <a href="/semana?semana={{ semana + 1 }}" class="btn btn-outline-secondary">Semana siguiente →</a>
+</div>
+{% endblock %}

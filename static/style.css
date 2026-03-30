@@ -1,0 +1,7 @@
+/* style.css */
+.table th, .table td {
+    text-align: center;
+}
+.badge {
+    font-size: 1rem;
+}

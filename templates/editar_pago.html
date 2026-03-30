@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Editar pago{% endblock %}
+{% block content %}
+
+<h2 class="mb-4">Editar pago</h2>
+
+<form method="POST" class="row g-3">
+  {% csrf_token %}
+  <div class="col-md-3">
+    <label class="form-label">Fecha</label>
+    <input type="date" name="fecha" class="form-control" value="{{ pago[0] }}" required>
+  </div>
+  <div class="col-md-3">
+    <label class="form-label">Tipo</label>
+    <select name="tipo" class="form-select" required>
+      <option value="almuerzo" {% if pago[1] == 'almuerzo' %}selected{% endif %}>Almuerzo</option>
+      <option value="cena" {% if pago[1] == 'cena' %}selected{% endif %}>Cena</option>
+    </select>
+  </div>
+  <div class="col-md-3">
+    <label class="form-label">Cantidad</label>
+    <input type="number" name="cantidad" class="form-control" value="{{ pago[3] }}" min="1" required>
+  </div>
+  <div class="col-md-3">
+    <label class="form-label">Monto</label>
+    <input type="number" name="monto" class="form-control" value="{{ pago[2] }}" step="0.01" min="0" required>
+  </div>
+  <div class="col-12 text-end">
+    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+    <a href="/pagos" class="btn btn-secondary">Cancelar</a>
+  </div>
+</form>
+
+{% endblock %}

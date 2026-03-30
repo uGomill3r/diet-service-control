@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Reporte de entregas por ciclo{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Reporte de entregas de {{ tipo | capitalize }}</h2>
+
+<!-- Selector de tipo -->
+<form method="GET" class="mb-4">
+  <div class="row g-3 align-items-end">
+    <div class="col-md-3">
+      <label for="tipo" class="form-label">Tipo de reporte</label>
+      <select class="form-select" name="tipo" id="tipo" onchange="this.form.submit()">
+        <option value="almuerzo" {% if tipo == 'almuerzo' %}selected{% endif %}>Almuerzo</option>
+        <option value="cena" {% if tipo == 'cena' %}selected{% endif %}>Cena</option>
+      </select>
+    </div>
+  </div>
+</form>
+
+<!-- Selector de ciclo -->
+<form method="POST" class="mb-4">
+  {% csrf_token %}
+  <input type="hidden" name="tipo" value="{{ tipo }}">
+  <div class="row g-3 align-items-end">
+    <div class="col-md-6">
+      <label for="fecha" class="form-label">Fecha de inicio del ciclo</label>
+      <select class="form-select" name="fecha" id="fecha">
+        <option value="">-- Seleccionar --</option>
+        {% for id, inicio, fin in ciclos %}
+          <option value="{{ inicio }}" {% if ciclo_seleccionado == inicio %}selected{% endif %}>
+            {{ inicio.strftime('%d-%m-%Y') }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-6">
+      <button type="submit" class="btn btn-primary">Ver reporte</button>
+    </div>
+  </div>
+</form>
+
+{% if ciclo_info %}
+<div class="alert alert-info mt-4">
+  <strong>Ciclo seleccionado:</strong><br>
+  Inicio: {{ ciclo_info[0].strftime('%d-%m-%Y') }}<br>
+  Fin: {{ ciclo_info[1].strftime('%d-%m-%Y') if ciclo_info[1] else '—' }}<br>
+  Tipo: {{ tipo | capitalize }}<br>
+  Entregas pagadas: {{ cantidad_pagada }}
+</div>
+{% endif %}
+
+{% if registros %}
+<div class="mb-3 mt-4">
+  <button class="btn btn-outline-primary me-2" onclick="copiarTabla()">📋 Copiar tabla</button>
+  <a href="/ciclo_excel?tipo={{ tipo }}&desde={{ ciclo_seleccionado }}" class="btn btn-outline-success">📄 Exportar a Excel</a>
+</div>
+{% if registros | selectattr("excedido") | list | length > 0 %}
+  <div class="mb-2">
+    <span class="badge bg-warning text-dark">⚠️ Días fuera del rango cubierto</span>
+  </div>
+{% endif %}
+<table class="table table-bordered table-sm" id="tablaReporte">
+  <thead class="table-light">
+    <tr><th>#</th><th>Fecha</th></tr>
+  </thead>
+  <tbody>
+    {% for r in registros %}
+    <tr {% if r.excedido %}class="table-warning"{% endif %}>
+      <td>{{ loop.index }}</td>
+      <td>{{ r.fecha }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function copiarTabla() {
+  const tabla = document.getElementById('tablaReporte');
+  if (!tabla) { alert('No se encontró la tabla'); return; }
+  let texto = '';
+  for (let fila of tabla.rows) {
+    let filaTexto = [];
+    for (let celda of fila.cells) filaTexto.push(celda.innerText);
+    texto += filaTexto.join('\t') + '\n';
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(texto).then(() => alert('Tabla copiada al portapapeles'))
+      .catch(err => alert('Error al copiar: ' + err));
+  } else {
+    alert('Tu navegador no permite copiar al portapapeles automáticamente.');
+  }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Registro de pagos{% endblock %}
+{% block content %}
+
+<h2 class="mb-4">Registro de pagos</h2>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <form method="POST" class="row g-3">
+      {% csrf_token %}
+      <div class="col-md-3">
+        <label class="form-label">Fecha del pago</label>
+        <input type="date" name="fecha" class="form-control" required>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Tipo de comida</label>
+        <select name="tipo" class="form-select" required>
+          <option value="almuerzo">Almuerzo</option>
+          <option value="cena">Cena</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Cantidad de comidas</label>
+        <input type="number" name="cantidad" class="form-control" min="1" required>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Monto total pagado</label>
+        <input type="number" name="monto" class="form-control" step="0.01" min="0" required>
+      </div>
+      <div class="col-12 text-end">
+        <button type="submit" class="btn btn-primary">Registrar pago</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<h3 class="mt-5">Pagos registrados</h3>
+<div class="table-responsive">
+  <table class="table table-bordered align-middle text-center">
+    <thead class="table-dark">
+      <tr>
+        <th>Fecha</th>
+        <th>Tipo</th>
+        <th>Monto</th>
+        <th>Ciclo</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in pagos %}
+      <tr>
+        <td>{{ p[1] }}</td>
+        <td>
+          <span class="badge {% if p[2] == 'almuerzo' %}bg-success{% else %}bg-primary{% endif %}">
+            {{ p[2] | capitalize }}
+          </span>
+        </td>
+        <td><span class="badge bg-secondary">{{ p[3] }}</span></td>
+        <td><span class="badge bg-dark">{{ p[4] }}</span></td>
+        <td>
+          <a href="/pagos/editar/{{ p[0] }}" class="btn btn-sm btn-outline-secondary">Editar</a>
+        </td>
+      </tr>
+      {% endfor %}
+      {% if pagos | length == 0 %}
+      <tr><td colspan="5">No hay pagos registrados aún.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+<h4 class="mt-4">Totales acumulados</h4>
+<ul class="list-group w-50 mb-4">
+  <li class="list-group-item d-flex justify-content-between">
+    <span>Almuerzos pagados</span>
+    <span class="badge bg-success">{{ totales.get('almuerzo', 0) }}</span>
+  </li>
+  <li class="list-group-item d-flex justify-content-between">
+    <span>Cenas pagadas</span>
+    <span class="badge bg-primary">{{ totales.get('cena', 0) }}</span>
+  </li>
+</ul>
+
+<a href="/" class="btn btn-secondary">Volver al inicio</a>
+
+{% endblock %}

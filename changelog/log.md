@@ -1,0 +1,47 @@
+# Registro editorial de acciones
+
+- 2025-10-03T12:00:00 | Sistema iniciado
+- 2025-10-03T13:43:19.151930 | Pago registrado: 2025-09-09, S/ 520, TARJETA
+- 2025-10-03T13:57:50.286125 | Pedido: 2025-09-08 | Almuerzo: False, Cena: False
+- 2025-10-03T13:57:50.286514 | Pedido: 2025-09-09 | Almuerzo: False, Cena: False
+- 2025-10-03T13:57:50.286655 | Pedido: 2025-09-10 | Almuerzo: True, Cena: False
+- 2025-10-03T13:57:50.286791 | Pedido: 2025-09-11 | Almuerzo: True, Cena: False
+- 2025-10-03T13:57:50.286926 | Pedido: 2025-09-12 | Almuerzo: True, Cena: False
+- 2025-10-03T14:00:11.681112 | Pedido: 2025-09-15 | Almuerzo: True, Cena: False
+- 2025-10-03T14:00:11.681365 | Pedido: 2025-09-16 | Almuerzo: True, Cena: True
+- 2025-10-03T14:00:11.681493 | Pedido: 2025-09-17 | Almuerzo: True, Cena: True
+- 2025-10-03T14:00:11.681651 | Pedido: 2025-09-18 | Almuerzo: True, Cena: False
+- 2025-10-03T14:00:11.681766 | Pedido: 2025-09-19 | Almuerzo: True, Cena: False
+- 2025-10-03T14:03:20.199493 | Pedido: 2025-09-22 | Almuerzo: True, Cena: True
+- 2025-10-03T14:03:20.199767 | Pedido: 2025-09-23 | Almuerzo: True, Cena: False
+- 2025-10-03T14:03:20.199921 | Pedido: 2025-09-24 | Almuerzo: True, Cena: False
+- 2025-10-03T14:03:20.200040 | Pedido: 2025-09-25 | Almuerzo: True, Cena: True
+- 2025-10-03T14:03:20.200152 | Pedido: 2025-09-26 | Almuerzo: True, Cena: False
+- 2025-10-03T14:04:50.612958 | Pedido: 2025-09-29 | Almuerzo: True, Cena: False
+- 2025-10-03T14:04:50.613282 | Pedido: 2025-09-30 | Almuerzo: True, Cena: True
+- 2025-10-03T14:04:50.613524 | Pedido: 2025-10-01 | Almuerzo: True, Cena: False
+- 2025-10-03T14:04:50.613754 | Pedido: 2025-10-02 | Almuerzo: True, Cena: True
+- 2025-10-03T14:04:50.613980 | Pedido: 2025-10-03 | Almuerzo: False, Cena: False
+- 2025-10-03T14:06:39.729919 | Pedido: 2025-10-06 | Almuerzo: True, Cena: False
+- 2025-10-03T14:06:39.730118 | Pedido: 2025-10-07 | Almuerzo: True, Cena: True
+- 2025-10-03T14:06:39.730266 | Pedido: 2025-10-09 | Almuerzo: True, Cena: False
+- 2025-10-03T14:06:39.730399 | Pedido: 2025-10-10 | Almuerzo: True, Cena: False
+- 2025-10-03T14:55:43.348914 | Entrega: 2025-09-11 | Almuerzo: True, Cena: False | Obs: 
+- 2025-10-03T14:56:17.430415 | Entrega: 2025-09-12 | Almuerzo: True, Cena: False | Obs: 
+- 2025-10-03T14:57:59.131219 | Entrega: 2025-09-15 | Almuerzo: True, Cena: False | Obs: 
+- 2025-10-03T14:58:07.796574 | Entrega: 2025-09-16 | Almuerzo: True, Cena: False | Obs: 
+- 2025-10-03T14:58:27.714818 | Entrega: 2025-09-16 | Almuerzo: True, Cena: True | Obs: 
+- 2025-10-03T14:58:42.356598 | Entrega: 2025-09-17 | Almuerzo: True, Cena: True | Obs: 
+- 2025-10-03T14:58:54.940675 | Entrega: 2025-09-18 | Almuerzo: True, Cena: False | Obs: 
+- 2025-10-03T14:59:02.095399 | Entrega: 2025-09-19 | Almuerzo: True, Cena: False | Obs: 
+- 2025-10-03T14:59:15.161408 | Entrega: 2025-09-22 | Almuerzo: True, Cena: True | Obs: 
+- 2025-10-03T14:59:22.995758 | Entrega: 2025-09-23 | Almuerzo: True, Cena: False | Obs: 
+- 2025-10-03T14:59:37.014103 | Entrega: 2025-09-24 | Almuerzo: True, Cena: False | Obs: 
+- 2025-10-03T14:59:44.209735 | Entrega: 2025-09-25 | Almuerzo: True, Cena: True | Obs: 
+- 2025-10-03T14:59:52.044307 | Entrega: 2025-09-26 | Almuerzo: True, Cena: False | Obs: 
+- 2025-10-03T15:00:02.797450 | Entrega: 2025-09-29 | Almuerzo: True, Cena: False | Obs: 
+- 2025-10-03T15:00:11.611419 | Entrega: 2025-09-30 | Almuerzo: True, Cena: False | Obs: 
+- 2025-10-03T15:00:24.173797 | Entrega: 2025-09-30 | Almuerzo: True, Cena: True | Obs: 
+- 2025-10-03T15:00:34.495226 | Entrega: 2025-10-01 | Almuerzo: True, Cena: False | Obs: 
+- 2025-10-03T15:00:48.194576 | Entrega: 2025-10-02 | Almuerzo: True, Cena: True | Obs: 
+- 2025-10-03T15:04:13.562327 | Entrega: 2025-09-11 | Almuerzo: True, Cena: False | Obs: 

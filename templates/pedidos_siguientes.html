@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Pedidos siguientes{% endblock %}
+{% block content %}
+
+<h2 class="mb-4">Pedidos siguientes</h2>
+
+<div class="mb-3 d-flex justify-content-between align-items-center">
+  <div>
+    <label for="filtro" class="form-label me-2">Filtrar por:</label>
+    <select id="filtro" class="form-select w-auto">
+      <option value="todos">Todos</option>
+      <option value="almuerzo">Solo Almuerzos</option>
+      <option value="cena">Solo Cenas</option>
+    </select>
+  </div>
+  <button class="btn btn-outline-secondary" onclick="copiarTabla()">📋 Copiar tabla</button>
+</div>
+
+<div class="table-responsive">
+  <table class="table table-bordered text-center" id="tablaPedidos">
+    <thead class="table-dark">
+      <tr>
+        <th>Fecha</th>
+        <th>Almuerzo</th>
+        <th>Cena</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in pedidos %}
+        <tr data-tipo="{{ 'almuerzo' if p.almuerzo else '' }}{{ ' cena' if p.cena else '' }}">
+          <td>
+            <a href="/ver_dia?fecha={{ p.fecha_raw }}" class="fw-bold text-decoration-none">
+              {{ p.fecha_fmt }}
+            </a>
+          </td>
+          <td>{% if p.almuerzo %}<span class="badge bg-warning">Pendiente</span>{% endif %}</td>
+          <td>{% if p.cena %}<span class="badge bg-warning">Pendiente</span>{% endif %}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+document.getElementById('filtro').addEventListener('change', function () {
+  const tipo = this.value;
+  const filas = document.querySelectorAll('#tablaPedidos tbody tr');
+  const colAlmuerzo = document.querySelectorAll('#tablaPedidos th:nth-child(2), #tablaPedidos td:nth-child(2)');
+  const colCena = document.querySelectorAll('#tablaPedidos th:nth-child(3), #tablaPedidos td:nth-child(3)');
+
+  if (tipo === 'almuerzo') {
+    colAlmuerzo.forEach(el => el.style.display = '');
+    colCena.forEach(el => el.style.display = 'none');
+  } else if (tipo === 'cena') {
+    colAlmuerzo.forEach(el => el.style.display = 'none');
+    colCena.forEach(el => el.style.display = '');
+  } else {
+    colAlmuerzo.forEach(el => el.style.display = '');
+    colCena.forEach(el => el.style.display = '');
+  }
+
+  filas.forEach(fila => {
+    const tipos = fila.dataset.tipo;
+    fila.style.display = (tipo === 'todos' || tipos.includes(tipo)) ? '' : 'none';
+  });
+});
+
+function copiarTabla() {
+  const filas = document.querySelectorAll('#tablaPedidos tbody tr');
+  let texto = '';
+  filas.forEach(row => {
+    if (row.style.display !== 'none') {
+      const celdaFecha = row.querySelector('td:nth-child(1)');
+      if (celdaFecha && celdaFecha.style.display !== 'none') {
+        texto += celdaFecha.innerText.trim() + '\n';
+      }
+    }
+  });
+  navigator.clipboard.writeText(texto).then(() => alert('Fechas copiadas al portapapeles'));
+}
+</script>
+
+{% endblock %}

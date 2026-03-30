@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Resumen{% endblock %}
+{% block content %}
+
+<h2 class="mb-4">Resumen</h2>
+
+<div class="table-responsive">
+  <table class="table table-bordered align-middle text-center">
+    <thead class="table-dark">
+      <tr>
+        <th>Ítem</th>
+        <th>Pagados</th>
+        <th>Pedidos</th>
+        <th>Entregados</th>
+        <th>Por entregar</th>
+        <th>Saldo</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Almuerzos</td>
+        <td><span class="badge bg-success">{{ alm_pagados }}</span></td>
+        <td><span class="badge bg-secondary">{{ alm_pedidos }}</span></td>
+        <td><span class="badge bg-success">{{ alm_entregados }}</span></td>
+        <td><span class="badge bg-warning">{{ alm_por_entregar }}</span></td>
+        <td>
+          <span class="badge {% if alm_saldo < 0 %}bg-danger{% else %}bg-success{% endif %}">
+            {{ alm_saldo }}
+          </span>
+        </td>
+      </tr>
+      <tr>
+        <td>Cenas</td>
+        <td><span class="badge bg-success">{{ cen_pagados }}</span></td>
+        <td><span class="badge bg-secondary">{{ cen_pedidos }}</span></td>
+        <td><span class="badge bg-success">{{ cen_entregados }}</span></td>
+        <td><span class="badge bg-warning">{{ cen_por_entregar }}</span></td>
+        <td>
+          <span class="badge {% if cen_saldo < 0 %}bg-danger{% else %}bg-success{% endif %}">
+            {{ cen_saldo }}
+          </span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p class="mt-3"><strong>Último pago registrado:</strong> {{ fecha_ultimo_pago }}</p>
+
+<h3 class="mt-4">Pedidos siguientes</h3>
+<div class="alert alert-warning">
+  <ul class="mb-0 list-unstyled">
+    {% for fecha_raw, fecha_fmt, comidas in pedidos_pendientes %}
+      <li class="mb-2 d-flex align-items-center">
+        <a href="/ver_dia?fecha={{ fecha_raw }}" class="fw-bold text-decoration-none me-3">{{ fecha_fmt }}</a>
+        <div class="d-flex flex-wrap gap-2">
+          {% for comida in comidas %}
+            <span class="badge bg-warning">{{ comida | capitalize }}</span>
+          {% endfor %}
+        </div>
+      </li>
+    {% endfor %}
+    {% if pedidos_pendientes | length == 0 %}
+      <li>Sin pendientes registrados</li>
+    {% endif %}
+  </ul>
+</div>
+<div class="mt-3 text-end">
+  <a href="/pedidos_siguientes" class="btn btn-outline-primary">Ver todos los pedidos siguientes</a>
+</div>
+
+<h3 class="mt-4">Pedidos sin validar</h3>
+<div class="alert alert-danger">
+  <ul class="mb-0 list-unstyled">
+    {% for fecha_raw, fecha_fmt, comidas in pedidos_por_validar %}
+      <li class="mb-2 d-flex align-items-center">
+        <a href="/ver_dia?fecha={{ fecha_raw }}" class="fw-bold text-decoration-none me-3">{{ fecha_fmt }}</a>
+        <div class="d-flex flex-wrap gap-2">
+          {% for comida in comidas %}
+            <span class="badge bg-danger">{{ comida | capitalize }}</span>
+          {% endfor %}
+        </div>
+      </li>
+    {% endfor %}
+    {% if pedidos_por_validar | length == 0 %}
+      <li>Nada por validar</li>
+    {% endif %}
+  </ul>
+</div>
+
+{% endblock %}

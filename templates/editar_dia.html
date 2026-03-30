@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+{% block title %}Editar Día{% endblock %}
+
+{% block content %}
+{% set modo_lectura = solo_lectura == true %}
+
+<h2 class="mb-4">Editar <span class="text-primary">{{ fecha_con_dia }}</span></h2>
+
+<!-- Estado actual -->
+<div class="mb-4">
+  {% if pedido[0] or pedido[1] %}
+    <span class="badge bg-secondary me-2">Pedido:
+      {% if pedido[0] and pedido[1] %}
+        Almuerzo y Cena
+      {% elif pedido[0] %}
+        Almuerzo
+      {% elif pedido[1] %}
+        Cena
+      {% else %}
+        Ninguno
+      {% endif %}
+    </span>
+  {% else %}
+    <span class="badge bg-light text-muted me-2">Sin pedido</span>
+  {% endif %}
+  {% if feriado %}
+    <span class="badge bg-info text-white ms-2">Feriado</span>
+  {% endif %}
+  {% if entrega[0] or entrega[1] %}
+    <span class="badge bg-success">Entregado:
+      {% if entrega[0] and entrega[1] %}
+        Almuerzo y Cena
+      {% elif entrega[0] %}
+        Almuerzo
+      {% elif entrega[1] %}
+        Cena
+      {% else %}
+        Ninguno
+      {% endif %}
+    </span>
+  {% elif (pedido[0] or pedido[1]) and not feriado %}
+    <span class="badge bg-warning text-dark">Entrega pendiente</span>
+  {% endif %}
+</div>
+
+<form method="POST" action="/editar_dia">
+  {% csrf_token %}
+  <input type="hidden" name="fecha" value="{{ fecha }}">
+  <div class="row g-4">
+    <!-- Estado del día -->
+    {% if not modo_lectura or feriado %}
+    <div class="col-12">
+      <div class="card shadow-sm border-info mb-4">
+        <div class="card-header bg-info text-white">Estado del día</div>
+        <div class="card-body">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" name="feriado" id="feriado" {% if feriado %}checked{% endif %} {% if modo_lectura %}disabled{% endif %}>
+            <label class="form-check-label fw-bold text-info" for="feriado">Feriado</label>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if not feriado and (pedido[0] or pedido[1] or not modo_lectura) %}
+    <!-- Pedido -->
+    <div class="col-md-6">
+      <div class="card shadow-sm border-secondary">
+        <div class="card-header bg-secondary text-white">Pedido</div>
+        <div class="card-body">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" name="almuerzo" id="almuerzo" {% if pedido[0] %}checked{% endif %} {% if modo_lectura %}disabled{% endif %}>
+            <label class="form-check-label fw-bold" for="almuerzo">Almuerzo</label>
+          </div>
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" name="cena" id="cena" {% if pedido[1] %}checked{% endif %} {% if modo_lectura %}disabled{% endif %}>
+            <label class="form-check-label fw-bold" for="cena">Cena</label>
+          </div>
+          <div id="bloqueAlmuerzo">
+            <div class="mb-3">
+              <label for="entrada" class="form-label fw-semibold text-primary border-start border-3 border-primary ps-3">Entrada</label>
+              <input type="text" class="form-control {% if modo_lectura %}bg-light border-0{% endif %}" name="entrada" id="entrada" value="{{ entrada }}" list="entrada_sugerencias" {% if modo_lectura %}disabled{% endif %}>
+            </div>
+            <div class="mb-3">
+              <label for="fondo" class="form-label fw-semibold text-primary border-start border-3 border-primary ps-3">Fondo</label>
+              <input type="text" class="form-control {% if modo_lectura %}bg-light border-0{% endif %}" name="fondo" id="fondo" value="{{ fondo }}" list="fondo_sugerencias" {% if modo_lectura %}disabled{% endif %}>
+            </div>
+          </div>
+          <div id="bloqueCena">
+            <div class="mb-3">
+              <label for="plato_cena" class="form-label fw-semibold text-primary border-start border-3 border-primary ps-3">Cena</label>
+              <input type="text" class="form-control {% if modo_lectura %}bg-light border-0{% endif %}" name="plato_cena" id="plato_cena" value="{{ plato_cena }}" list="plato_cena_sugerencias" {% if modo_lectura %}disabled{% endif %}>
+            </div>
+          </div>
+          {% if not modo_lectura or obs_pedido %}
+            <div class="mb-3">
+              <label for="obs_pedido" class="form-label fw-semibold text-primary border-start border-3 border-primary ps-3">Observación del pedido</label>
+              <textarea class="form-control {% if modo_lectura %}bg-light border-0{% endif %}" name="obs_pedido" id="obs_pedido" rows="2" {% if modo_lectura %}disabled{% endif %}>{{ obs_pedido }}</textarea>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if not feriado and (entrega[0] or entrega[1] or entrega[2] or not modo_lectura) %}
+    <!-- Entrega -->
+    <div class="col-md-6">
+      <div class="card shadow-sm border-success">
+        <div class="card-header bg-success text-white">Entrega</div>
+        <div class="card-body">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" name="entregado_almuerzo" id="entregado_almuerzo" {% if entrega[0] %}checked{% endif %} {% if modo_lectura %}disabled{% endif %}>
+            <label class="form-check-label fw-bold text-success" for="entregado_almuerzo">Almuerzo entregado</label>
+          </div>
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" name="entregado_cena" id="entregado_cena" {% if entrega[1] %}checked{% endif %} {% if modo_lectura %}disabled{% endif %}>
+            <label class="form-check-label fw-bold text-success" for="entregado_cena">Cena entregada</label>
+          </div>
+          {% if not modo_lectura or entrega[2] %}
+            <div class="mb-3">
+              <label for="obs_entrega" class="form-label fw-semibold text-primary border-start border-3 border-primary ps-3">Observación de la entrega</label>
+              <textarea class="form-control {% if modo_lectura %}bg-light border-0{% endif %}" name="obs_entrega" id="obs_entrega" rows="2" {% if modo_lectura %}disabled{% endif %}>{{ entrega[2] }}</textarea>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="mt-4 d-flex justify-content-between align-items-center">
+    <a href="/ver_dia?fecha={{ fecha_ant }}" class="btn btn-outline-secondary">← Día anterior</a>
+
+    {% if modo_lectura %}
+      <a href="/editar_dia?fecha={{ fecha }}" class="btn btn-warning">Editar este día</a>
+    {% else %}
+      <div>
+        <button type="submit" class="btn btn-primary me-2" id="guardarBtn" style="display:none;">Guardar</button>
+        <button type="submit" class="btn btn-outline-primary" name="accion" value="guardar_siguiente" id="guardarSiguienteBtn" style="display:none;">Guardar y editar siguiente →</button>
+      </div>
+    {% endif %}
+
+    <a href="/ver_dia?fecha={{ fecha_sig }}" class="btn btn-outline-secondary">Día siguiente →</a>
+  </div>
+
+  <datalist id="entrada_sugerencias"></datalist>
+  <datalist id="fondo_sugerencias"></datalist>
+  <datalist id="plato_cena_sugerencias"></datalist>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const form = document.querySelector('form');
+  const guardarBtn = document.getElementById('guardarBtn');
+  const guardarSiguienteBtn = document.getElementById('guardarSiguienteBtn');
+  if (!guardarBtn) return;
+
+  const originalState = {};
+  form.querySelectorAll('input, textarea').forEach(el => {
+    if (el.type === 'checkbox') {
+      originalState[el.name] = el.checked;
+    } else {
+      originalState[el.name] = el.value;
+    }
+  });
+
+  function detectChanges() {
+    let cambiado = false;
+    form.querySelectorAll('input, textarea').forEach(el => {
+      const original = originalState[el.name];
+      const actual = el.type === 'checkbox' ? el.checked : el.value;
+      if (original !== actual) cambiado = true;
+    });
+    guardarBtn.style.display = cambiado ? 'inline-block' : 'none';
+    guardarSiguienteBtn.style.display = cambiado ? 'inline-block' : 'none';
+  }
+
+  form.addEventListener('input', detectChanges);
+  form.addEventListener('change', detectChanges);
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const feriadoSwitch = document.getElementById('feriado');
+  if (!feriadoSwitch) return;
+  const camposBloqueables = ['almuerzo','cena','entregado_almuerzo','entregado_cena','obs_pedido','obs_entrega'];
+
+  function actualizarBloqueo() {
+    const bloquear = feriadoSwitch.checked;
+    camposBloqueables.forEach(id => {
+      const campo = document.getElementById(id);
+      if (campo) campo.disabled = bloquear;
+    });
+  }
+  feriadoSwitch.addEventListener('change', actualizarBloqueo);
+  actualizarBloqueo();
+});
+</script>
+<script>
+function activarAutocompletado(idCampo) {
+  const campo = document.getElementById(idCampo);
+  if (!campo) return;
+  campo.addEventListener('input', function () {
+    const texto = campo.value;
+    if (texto.length < 2) return;
+    fetch(`/sugerencias_plato?q=${encodeURIComponent(texto)}`)
+      .then(res => res.json())
+      .then(sugerencias => {
+        const datalistId = idCampo + "_sugerencias";
+        let datalist = document.getElementById(datalistId);
+        datalist.innerHTML = '';
+        sugerencias.forEach(plato => {
+          const option = document.createElement('option');
+          option.value = plato;
+          datalist.appendChild(option);
+        });
+      });
+  });
+}
+document.addEventListener('DOMContentLoaded', function () {
+  activarAutocompletado('entrada');
+  activarAutocompletado('fondo');
+  activarAutocompletado('plato_cena');
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const almuerzoSwitch = document.getElementById('almuerzo');
+  const cenaSwitch = document.getElementById('cena');
+  const bloqueAlmuerzo = document.getElementById('bloqueAlmuerzo');
+  const bloqueCena = document.getElementById('bloqueCena');
+  if (!almuerzoSwitch || !cenaSwitch) return;
+
+  function actualizarVisibilidad() {
+    bloqueAlmuerzo.style.display = almuerzoSwitch.checked ? 'block' : 'none';
+    bloqueCena.style.display = cenaSwitch.checked ? 'block' : 'none';
+  }
+  almuerzoSwitch.addEventListener('change', actualizarVisibilidad);
+  cenaSwitch.addEventListener('change', actualizarVisibilidad);
+  actualizarVisibilidad();
+});
+</script>
+{% endblock %}
