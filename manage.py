@@ -6,6 +6,13 @@ import sys
 
 def main():
     """Run administrative tasks."""
+    # Carga variables del .env para desarrollo local
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except ImportError:
+        pass  # En producción/Docker las variables vienen del entorno directamente
+
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "diet_service_control.settings")
     try:
         from django.core.management import execute_from_command_line
