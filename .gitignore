@@ -1,0 +1,56 @@
+### Python ###
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+### Entornos Virtuales ###
+venv/
+.venv/
+env/
+.env/
+ENV/
+env.bak/
+venv.bak/
+
+### Flask ###
+instance/
+.webassets-cache
+.env
+.flaskenv
+*.db
+*.sqlite
+
+### PyCharm / JetBrains ###
+.idea/
+*.iml
+cmake-build-*/
+out/
+
+### macOS (si trabajas en Mac) ###
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+### Logs ###
+*.log
+pip-log.txt
+pip-delete-this-directory.txt
