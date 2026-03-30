@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     "apps.pagos",
     "apps.reportes",
     "apps.log",
+    "apps.importar",
 ]
 
 # Messages backend para sesiones sin django.contrib.auth completo

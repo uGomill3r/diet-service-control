@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Previsualización de importación{% endblock %}
+
+{% block content %}
+<h2 class="mb-1">Previsualización del plan importado</h2>
+<p class="text-muted mb-3">
+  <strong>{{ resultado.asunto }}</strong>
+</p>
+
+{% if resultado.errores %}
+<div class="alert alert-warning">
+  <strong><i class="bi bi-exclamation-triangle me-1"></i>Advertencias detectadas:</strong>
+  <ul class="mb-0 mt-1">
+    {% for error in resultado.errores %}
+      <li>{{ error }}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<div class="table-responsive mb-4">
+  <table class="table table-bordered table-sm align-middle">
+    <thead class="table-dark">
+      <tr>
+        <th style="width: 120px;">Fecha</th>
+        <th>Entrada seleccionada</th>
+        <th>Fondo seleccionado</th>
+        <th style="width: 100px;">Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for dia in resultado.dias %}
+      <tr {% if dia.ya_existe %}class="table-warning"{% endif %}>
+        <td class="fw-semibold">
+          {% if dia.fecha %}
+            {{ dia.fecha.strftime('%d-%m-%Y') }}
+          {% else %}
+            <span class="text-danger">Sin fecha</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if dia.entrada %}
+            {{ dia.entrada }}
+          {% else %}
+            <span class="text-muted fst-italic">Sin selección</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if dia.fondo %}
+            {{ dia.fondo }}
+          {% else %}
+            <span class="text-muted fst-italic">Sin selección</span>
+          {% endif %}
+        </td>
+        <td class="text-center">
+          {% if not dia.fecha %}
+            <span class="badge bg-danger">Error fecha</span>
+          {% elif dia.ya_existe %}
+            <span class="badge bg-warning text-dark">Sobreescribir</span>
+          {% else %}
+            <span class="badge bg-success">Nuevo</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="d-flex gap-2 align-items-center mb-2">
+  <span class="badge bg-success">Nuevo</span> <span class="me-3">— se creará el pedido</span>
+  <span class="badge bg-warning text-dark">Sobreescribir</span> <span>— ya existe un pedido, se actualizarán entrada y fondo</span>
+</div>
+
+<div class="mt-4 d-flex gap-3">
+  <form method="POST" action="/importar/confirmar">
+    {% csrf_token %}
+    <input type="hidden" name="datos_json" value="{{ datos_json }}">
+    <button type="submit" class="btn btn-success">
+      <i class="bi bi-check-circle me-2"></i>Confirmar importación ({{ total_dias }} días)
+    </button>
+  </form>
+  <a href="/importar" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Cancelar y subir otro archivo
+  </a>
+</div>
+{% endblock %}

@@ -11,4 +11,5 @@ urlpatterns = [
     path("", include("apps.pagos.urls")),
     path("", include("apps.reportes.urls")),
     path("", include("apps.log.urls")),
+    path("", include("apps.importar.urls")),
 ]
