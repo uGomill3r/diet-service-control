@@ -3,7 +3,7 @@ Funciones utilitarias del proyecto, migradas desde utils.py de Flask.
 """
 import logging
 from datetime import datetime, date, timedelta
-from apps.core.models import Pedido
+from apps.core.models import Pedido, Entrega, CicloPago
 
 logger = logging.getLogger(__name__)
 
@@ -90,3 +90,48 @@ def formatear_fecha_con_dia(fecha: date) -> str:
     dias_abreviados = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
     dia = dias_abreviados[fecha.weekday()]
     return f"{dia} {fecha.strftime('%d-%m-%Y')}"
+
+
+def contar_entregas_ciclo(ciclo: CicloPago) -> int:
+    """
+    Cuenta las entregas del tipo del ciclo dentro de su rango de fechas.
+
+    Para 'almuerzo' cuenta registros con entregado_almuerzo > 0.
+    Para 'cena' cuenta registros con entregado_cena > 0.
+    El rango es [fecha_inicio, fecha_fin] si está cerrado, o [fecha_inicio, hoy] si está abierto.
+    """
+    fecha_hasta = ciclo.fecha_fin or date.today()
+    campo = f"entregado_{ciclo.tipo}__gt"
+    count = Entrega.objects.filter(
+        fecha__gte=ciclo.fecha_inicio,
+        fecha__lte=fecha_hasta,
+        **{campo: 0},
+    ).count()
+    logger.info(
+        "Entregas contadas para ciclo id=%d (%s): %d",
+        ciclo.id, ciclo.tipo, count,
+    )
+    return count
+
+
+def ciclo_agotado(ciclo: CicloPago) -> bool:
+    """
+    Retorna True si el ciclo ya consumió todas las comidas del paquete pagado.
+
+    Obtiene la cantidad del pago asociado al ciclo. Si no hay pago registrado,
+    considera el ciclo como no agotado para no bloquear registros anteriores.
+    """
+    pago = ciclo.pagos.first()
+    if pago is None:
+        logger.warning(
+            "Ciclo id=%d sin pago asociado, no se puede evaluar agotamiento",
+            ciclo.id,
+        )
+        return False
+    entregas = contar_entregas_ciclo(ciclo)
+    agotado = entregas >= pago.cantidad
+    logger.info(
+        "Ciclo id=%d — entregas: %d / cantidad: %d — agotado: %s",
+        ciclo.id, entregas, pago.cantidad, agotado,
+    )
+    return agotado

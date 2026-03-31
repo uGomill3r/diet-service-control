@@ -4,6 +4,13 @@
 
 <h2 class="mb-4">Registro de pagos</h2>
 
+{% if aviso %}
+<div class="alert alert-warning alert-dismissible fade show" role="alert">
+  <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ aviso }}
+  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
 <div class="card shadow-sm mb-4">
   <div class="card-body">
     <form method="POST" class="row g-3">
@@ -41,8 +48,9 @@
       <tr>
         <th>Fecha</th>
         <th>Tipo</th>
+        <th>Cantidad</th>
         <th>Monto</th>
-        <th>Ciclo</th>
+        <th>Ciclo desde</th>
         <th>Acciones</th>
       </tr>
     </thead>
@@ -55,15 +63,22 @@
             {{ p[2] | capitalize }}
           </span>
         </td>
+        <td>{{ p[4] }}</td>
         <td><span class="badge bg-secondary">{{ p[3] }}</span></td>
-        <td><span class="badge bg-dark">{{ p[4] }}</span></td>
+        <td>
+          {% if p[5] == '—' %}
+            <span class="badge bg-warning text-dark">Pendiente</span>
+          {% else %}
+            <span class="badge bg-dark">{{ p[5] }}</span>
+          {% endif %}
+        </td>
         <td>
           <a href="/pagos/editar/{{ p[0] }}" class="btn btn-sm btn-outline-secondary">Editar</a>
         </td>
       </tr>
       {% endfor %}
       {% if pagos | length == 0 %}
-      <tr><td colspan="5">No hay pagos registrados aún.</td></tr>
+      <tr><td colspan="6">No hay pagos registrados aún.</td></tr>
       {% endif %}
     </tbody>
   </table>
