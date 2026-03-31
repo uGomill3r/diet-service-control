@@ -10,7 +10,7 @@ from datetime import date
 from django.shortcuts import render
 
 from apps.core.decorators import protegido
-from apps.core.models import Entrega, Pedido
+from apps.core.models import CicloPago, Entrega, Pedido
 from apps.core.utils import normalizar_fecha
 
 logger = logging.getLogger(__name__)
@@ -64,6 +64,16 @@ def vista_mensual(request):
     # Primer y último día del mes
     primer_dia = date(anio, mes, 1)
     ultimo_dia = date(anio, mes, calendar.monthrange(anio, mes)[1])
+
+    # Inicios de ciclo del mes — dict fecha → set de tipos ('almuerzo', 'cena')
+    ciclos_qs = CicloPago.objects.filter(
+        fecha_inicio__range=(primer_dia, ultimo_dia)
+    ).values("fecha_inicio", "tipo")
+    inicios_ciclo: dict[date, set] = {}
+    for row in ciclos_qs:
+        f = normalizar_fecha(row["fecha_inicio"])
+        inicios_ciclo.setdefault(f, set()).add(row["tipo"])
+    logger.info("Inicios de ciclo en el mes: %d", len(inicios_ciclo))
 
     # Pedidos del mes
     pedidos_qs = Pedido.objects.filter(
@@ -132,6 +142,7 @@ def vista_mensual(request):
                 "es_hoy": fecha_dia == hoy,
                 "feriado": pedido["feriado"],
                 "estado": estado,
+                "ciclo_inicio": inicios_ciclo.get(fecha_dia, set()),
             })
 
         semanas.append({

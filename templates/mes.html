@@ -25,6 +25,8 @@
   <span class="badge bg-warning text-dark">Pedido / pendiente</span>
   <span class="badge bg-danger">No entregado</span>
   <span class="badge bg-light text-dark border">Sin pedido</span>
+  <span class="badge bg-success"><i class="bi bi-flag-fill"></i> A</span><small class="text-muted">Inicio ciclo almuerzo</small>
+  <span class="badge bg-primary ms-2"><i class="bi bi-flag-fill"></i> C</span><small class="text-muted">Inicio ciclo cena</small>
   <span class="badge bg-info text-white">Feriado</span>
 </div>
 
@@ -66,6 +68,16 @@
                         {% else %}bg-light
                         {% endif %}">
               <span class="fw-bold" style="font-size: 0.9rem;">{{ dia.numero }}</span>
+              {% if 'almuerzo' in dia.ciclo_inicio %}
+                <span class="badge bg-success ms-1 p-0 px-1" style="font-size: 0.55rem;" title="Inicio ciclo almuerzo">
+                  <i class="bi bi-flag-fill"></i> A
+                </span>
+              {% endif %}
+              {% if 'cena' in dia.ciclo_inicio %}
+                <span class="badge bg-primary ms-1 p-0 px-1" style="font-size: 0.55rem;" title="Inicio ciclo cena">
+                  <i class="bi bi-flag-fill"></i> C
+                </span>
+              {% endif %}
             </div>
             <div class="card-body p-1 text-center">
               {% if dia.feriado %}
