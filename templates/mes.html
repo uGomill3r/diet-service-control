@@ -25,8 +25,8 @@
   <span class="badge bg-warning text-dark">Pedido / pendiente</span>
   <span class="badge bg-danger">No entregado</span>
   <span class="badge bg-light text-dark border">Sin pedido</span>
-  <span class="badge bg-secondary text-dark"><i class="bi bi-flag-fill"></i>A</span><small class="text-muted">Inicio ciclo almuerzo</small>
-  <span class="badge bg-secondary text-dark ms-2"><i class="bi bi-flag-fill"></i>C</span><small class="text-muted">Inicio ciclo cena</small>
+  <span class="badge text-dark" style="background-color: #e0e0e0;"><i class="bi bi-flag-fill"></i>A</span><small class="text-muted">Inicio ciclo almuerzo</small>
+  <span class="badge text-dark ms-2" style="background-color: #e0e0e0;"><i class="bi bi-flag-fill"></i>C</span><small class="text-muted">Inicio ciclo cena</small>
   <span class="badge bg-info text-white">Feriado</span>
 </div>
 
@@ -70,12 +70,12 @@
               <span class="fw-bold" style="font-size: 0.9rem;">{{ dia.numero }}</span>
               <span class="d-flex gap-1">
                 {% if 'almuerzo' in dia.ciclo_inicio %}
-                  <span class="badge bg-secondary text-dark" style="font-size: 0.9rem; line-height: 1;" title="Inicio ciclo almuerzo">
+                  <span class="badge text-dark" style="background-color: #e0e0e0; font-size: 0.9rem; line-height: 1;" title="Inicio ciclo almuerzo">
                     <i class="bi bi-flag-fill"></i>A
                   </span>
                 {% endif %}
                 {% if 'cena' in dia.ciclo_inicio %}
-                  <span class="badge bg-secondary text-dark" style="font-size: 0.9rem; line-height: 1;" title="Inicio ciclo cena">
+                  <span class="badge text-dark" style="background-color: #e0e0e0; font-size: 0.9rem; line-height: 1;" title="Inicio ciclo cena">
                     <i class="bi bi-flag-fill"></i>C
                   </span>
                 {% endif %}
