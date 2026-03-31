@@ -12,6 +12,10 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-cambia-esto-en-produc
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
+# Entorno de ejecución: 'local' en desarrollo, 'production' en Render
+# True cuando el proceso corre en Render (inyecta RENDER=true automáticamente)
+IS_RENDER = os.environ.get("RENDER") == "true"
+
 # Aplicaciones
 INSTALLED_APPS = [
     "django.contrib.contenttypes",
@@ -34,9 +38,15 @@ INSTALLED_APPS = [
 # Messages backend para sesiones sin django.contrib.auth completo
 MESSAGE_STORAGE = "django.contrib.messages.storage.session.SessionStorage"
 
+_whitenoise_middleware = (
+    ["whitenoise.middleware.WhiteNoiseMiddleware"]
+    if IS_RENDER
+    else []
+)
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # sirve archivos estáticos en producción
+    *_whitenoise_middleware,  # solo en producción (Render)
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -86,8 +96,12 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
-# Compresión y cache de estáticos via WhiteNoise
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# Compresión y cache via WhiteNoise en Render; en local usa el backend estándar de Django
+STATICFILES_STORAGE = (
+    "whitenoise.storage.CompressedManifestStaticFilesStorage"
+    if IS_RENDER
+    else "django.contrib.staticfiles.storage.StaticFilesStorage"
+)
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
