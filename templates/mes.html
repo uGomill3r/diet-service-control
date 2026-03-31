@@ -25,8 +25,8 @@
   <span class="badge bg-warning text-dark">Pedido / pendiente</span>
   <span class="badge bg-danger">No entregado</span>
   <span class="badge bg-light text-dark border">Sin pedido</span>
-  <span class="badge bg-success"><i class="bi bi-flag-fill"></i> A</span><small class="text-muted">Inicio ciclo almuerzo</small>
-  <span class="badge bg-primary ms-2"><i class="bi bi-flag-fill"></i> C</span><small class="text-muted">Inicio ciclo cena</small>
+  <span class="badge bg-secondary text-dark"><i class="bi bi-flag-fill"></i>A</span><small class="text-muted">Inicio ciclo almuerzo</small>
+  <span class="badge bg-secondary text-dark ms-2"><i class="bi bi-flag-fill"></i>C</span><small class="text-muted">Inicio ciclo cena</small>
   <span class="badge bg-info text-white">Feriado</span>
 </div>
 
@@ -62,22 +62,24 @@
           <div class="card h-100 shadow-sm {% if dia.es_hoy %}border-primary border-2{% endif %}"
                onclick="location.href='/ver_dia?fecha={{ dia.fecha }}'"
                style="cursor: pointer; min-height: 80px;">
-            <div class="card-header p-1 text-center
+            <div class="card-header p-1 d-flex align-items-center justify-content-between
                         {% if dia.feriado %}bg-info text-white
                         {% elif dia.es_hoy %}bg-primary text-white
                         {% else %}bg-light
                         {% endif %}">
               <span class="fw-bold" style="font-size: 0.9rem;">{{ dia.numero }}</span>
-              {% if 'almuerzo' in dia.ciclo_inicio %}
-                <span class="badge bg-success ms-1 p-0 px-1" style="font-size: 0.55rem;" title="Inicio ciclo almuerzo">
-                  <i class="bi bi-flag-fill"></i> A
-                </span>
-              {% endif %}
-              {% if 'cena' in dia.ciclo_inicio %}
-                <span class="badge bg-primary ms-1 p-0 px-1" style="font-size: 0.55rem;" title="Inicio ciclo cena">
-                  <i class="bi bi-flag-fill"></i> C
-                </span>
-              {% endif %}
+              <span class="d-flex gap-1">
+                {% if 'almuerzo' in dia.ciclo_inicio %}
+                  <span class="badge bg-secondary text-dark" style="font-size: 0.9rem; line-height: 1;" title="Inicio ciclo almuerzo">
+                    <i class="bi bi-flag-fill"></i>A
+                  </span>
+                {% endif %}
+                {% if 'cena' in dia.ciclo_inicio %}
+                  <span class="badge bg-secondary text-dark" style="font-size: 0.9rem; line-height: 1;" title="Inicio ciclo cena">
+                    <i class="bi bi-flag-fill"></i>C
+                  </span>
+                {% endif %}
+              </span>
             </div>
             <div class="card-body p-1 text-center">
               {% if dia.feriado %}
