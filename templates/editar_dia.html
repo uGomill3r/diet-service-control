@@ -1,3 +1,13 @@
+{% block styles %}
+<style>
+  textarea.auto-resize {
+    resize: none;
+    overflow: hidden;
+    line-height: 1.5;
+  }
+</style>
+{% endblock %}
+
 {% extends "base.html" %}
 {% block title %}Editar Día{% endblock %}
 
@@ -79,17 +89,17 @@
           <div id="bloqueAlmuerzo">
             <div class="mb-3">
               <label for="entrada" class="form-label fw-semibold text-primary border-start border-3 border-primary ps-3">Entrada</label>
-              <input type="text" class="form-control {% if modo_lectura %}bg-light border-0{% endif %}" name="entrada" id="entrada" value="{{ entrada }}" list="entrada_sugerencias" {% if modo_lectura %}disabled{% endif %}>
+              <textarea class="form-control auto-resize {% if modo_lectura %}bg-light border-0{% endif %}" name="entrada" id="entrada" rows="1" list="entrada_sugerencias" {% if modo_lectura %}disabled{% endif %}>{{ entrada }}</textarea>
             </div>
             <div class="mb-3">
               <label for="fondo" class="form-label fw-semibold text-primary border-start border-3 border-primary ps-3">Fondo</label>
-              <input type="text" class="form-control {% if modo_lectura %}bg-light border-0{% endif %}" name="fondo" id="fondo" value="{{ fondo }}" list="fondo_sugerencias" {% if modo_lectura %}disabled{% endif %}>
+              <textarea class="form-control auto-resize {% if modo_lectura %}bg-light border-0{% endif %}" name="fondo" id="fondo" rows="1" list="fondo_sugerencias" {% if modo_lectura %}disabled{% endif %}>{{ fondo }}</textarea>
             </div>
           </div>
           <div id="bloqueCena">
             <div class="mb-3">
               <label for="plato_cena" class="form-label fw-semibold text-primary border-start border-3 border-primary ps-3">Cena</label>
-              <input type="text" class="form-control {% if modo_lectura %}bg-light border-0{% endif %}" name="plato_cena" id="plato_cena" value="{{ plato_cena }}" list="plato_cena_sugerencias" {% if modo_lectura %}disabled{% endif %}>
+              <textarea class="form-control auto-resize {% if modo_lectura %}bg-light border-0{% endif %}" name="plato_cena" id="plato_cena" rows="1" list="plato_cena_sugerencias" {% if modo_lectura %}disabled{% endif %}>{{ plato_cena }}</textarea>
             </div>
           </div>
           {% if not modo_lectura or obs_pedido %}
@@ -135,6 +145,7 @@
     {% if modo_lectura %}
       <a href="/editar_dia?fecha={{ fecha }}" class="btn btn-warning">Editar este día</a>
     {% else %}
+      <div>
       <div class="d-flex flex-column flex-sm-row gap-2">
         <button type="submit" class="btn btn-primary" id="guardarBtn" style="display:none;">Guardar</button>
         <button type="submit" class="btn btn-outline-primary" name="accion" value="guardar_siguiente" id="guardarSiguienteBtn" style="display:none;">Guardar y editar siguiente →</button>
@@ -151,6 +162,19 @@
 {% endblock %}
 
 {% block scripts %}
+<script>
+// Ajusta altura del textarea al contenido, tanto al cargar como al escribir
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('textarea.auto-resize').forEach(function (ta) {
+    autoResize(ta);
+    ta.addEventListener('input', function () { autoResize(ta); });
+  });
+});
+</script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const form = document.querySelector('form');
