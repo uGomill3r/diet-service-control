@@ -11,9 +11,11 @@ def _serve_touch_icon(request):
     return FileResponse(open(icon_path, "rb"), content_type="image/png")
 
 urlpatterns = [
-    # Rutas requeridas por Safari/iOS al agregar a favoritos
+    # Rutas requeridas por Safari/iOS al agregar a favoritos (todas las variantes conocidas)
     path("apple-touch-icon.png", _serve_touch_icon),
     path("apple-touch-icon-precomposed.png", _serve_touch_icon),
+    path("apple-touch-icon-120x120.png", _serve_touch_icon),
+    path("apple-touch-icon-120x120-precomposed.png", _serve_touch_icon),
     path("favicon.ico", _serve_touch_icon),
     path("", include("apps.auth_app.urls")),
     path("", include("apps.dashboard.urls")),
