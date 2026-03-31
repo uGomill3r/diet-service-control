@@ -25,8 +25,8 @@
   <span class="badge bg-warning text-dark">Pedido / pendiente</span>
   <span class="badge bg-danger">No entregado</span>
   <span class="badge bg-light text-dark border">Sin pedido</span>
-  <span id="toggle-ciclo-almuerzo" class="badge text-dark" style="background-color: #e0e0e0; cursor: pointer; opacity: 0.45;" onclick="toggleBadgesTipo('almuerzo')" title="Mostrar/ocultar badges de almuerzo"><i class="bi bi-flag-fill"></i>A</span><small class="text-muted ms-1">Inicio ciclo almuerzo</small>
-  <span id="toggle-ciclo-cena" class="badge text-dark ms-2" style="background-color: #e0e0e0; cursor: pointer; opacity: 0.45;" onclick="toggleBadgesTipo('cena')" title="Mostrar/ocultar badges de cena"><i class="bi bi-flag-fill"></i>C</span><small class="text-muted ms-1">Inicio ciclo cena</small>
+  <span id="toggle-ciclo-almuerzo" class="badge text-dark" style="background-color: #e0e0e0; cursor: pointer;" onclick="toggleBadgesTipo('almuerzo')" title="Mostrar/ocultar badges de almuerzo"><i class="bi bi-flag-fill"></i>A</span><small class="text-muted ms-1">Inicio ciclo almuerzo</small>
+  <span id="toggle-ciclo-cena" class="badge text-dark ms-2" style="background-color: #e0e0e0; cursor: pointer;" onclick="toggleBadgesTipo('cena')" title="Mostrar/ocultar badges de cena"><i class="bi bi-flag-fill"></i>C</span><small class="text-muted ms-1">Inicio ciclo cena</small>
   <span class="badge bg-info text-white">Feriado</span>
 </div>
 
@@ -112,19 +112,31 @@
 </div>
 
 <script>
-// Controla visibilidad de badges A o C en el cuerpo de los cards
+// Estado inicial: badges visibles, toggles activos (opacidad plena)
+// data-active='1' => badges visibles; '0' => badges ocultos
+function initToggle(tipo) {
+  const toggle = document.getElementById('toggle-ciclo-' + tipo);
+  toggle.dataset.active = '1';
+  toggle.style.opacity = '1';
+}
+
 function toggleBadgesTipo(tipo) {
   const badges = document.querySelectorAll('.badge-tipo-' + tipo);
   const toggle = document.getElementById('toggle-ciclo-' + tipo);
   const visible = toggle.dataset.active === '1';
 
+  // Usar visibility para no alterar el layout del card
   badges.forEach(function(b) {
     b.style.visibility = visible ? 'hidden' : 'visible';
   });
 
-  // Indicar estado activo con opacidad completa, inactivo atenuado
   toggle.style.opacity = visible ? '0.45' : '1';
   toggle.dataset.active = visible ? '0' : '1';
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+  initToggle('almuerzo');
+  initToggle('cena');
+});
 </script>
 {% endblock %}
