@@ -117,12 +117,34 @@ def _extraer_año_del_asunto(asunto):
 
 
 def _extraer_mes_del_asunto(asunto):
-    """Extrae el número de mes desde el asunto del email."""
+    """Extrae el número de mes desde el asunto del email.
+
+    Retorna el primer mes encontrado (usado como fallback o cuando el plan
+    es de un solo mes). Para planes que cruzan meses, usar
+    _extraer_rango_meses_del_asunto.
+    """
     asunto_lower = asunto.lower()
     for nombre, numero in MESES.items():
         if nombre in asunto_lower:
             return numero
     return None
+
+
+def _extraer_rango_meses_del_asunto(asunto):
+    """Extrae todos los meses mencionados en el asunto, en el orden en que aparecen.
+
+    Retorna una lista de (nombre, numero) según su posición en el texto.
+    Ejemplo: "del 29 de Junio al 10 de Julio" → [(6, pos_junio), (7, pos_julio)]
+    ordenados por posición.
+    """
+    asunto_lower = asunto.lower()
+    encontrados = []
+    for nombre, numero in MESES.items():
+        pos = asunto_lower.find(nombre)
+        if pos != -1:
+            encontrados.append((pos, numero))
+    encontrados.sort()  # ordenar por posición de aparición en el texto
+    return [numero for _, numero in encontrados]
 
 
 def parsear_eml(contenido_bytes):
@@ -181,11 +203,15 @@ def parsear_eml(contenido_bytes):
 
     # Extraer año y mes del asunto
     resultado["año"] = _extraer_año_del_asunto(asunto)
-    resultado["mes"] = _extraer_mes_del_asunto(asunto)
+    meses_rango = _extraer_rango_meses_del_asunto(asunto)
+    # "mes" guarda el primer mes del rango (compatibilidad con el resto del código)
+    resultado["mes"] = meses_rango[0] if meses_rango else None
 
     if not resultado["mes"]:
         resultado["errores"].append("No se pudo detectar el mes desde el asunto del email.")
         logger.warning("Mes no detectado en asunto: %s", asunto)
+    elif len(meses_rango) > 1:
+        logger.info("Plan multi-mes detectado en asunto: meses %s", meses_rango)
 
     # Extraer y parsear el HTML
     html = _extraer_html(msg)
@@ -229,23 +255,49 @@ def parsear_eml(contenido_bytes):
             )
 
     # Construir fechas y ordenar
+    # Bug fix: cuando el plan cruza dos meses (ej. "del 29 de Junio al 10 de Julio"),
+    # los días del segundo mes tienen números menores que los del primero.
+    # Detectamos el salto cuando el número de día decrece respecto al anterior.
     año = resultado["año"]
-    mes = resultado["mes"]
+    mes_inicial = resultado["mes"]
     dias_ordenados = []
 
-    for dia_num in sorted(dias_dict.keys()):
-        info = dias_dict[dia_num]
-        if mes:
+    if mes_inicial:
+        dias_nums_ordenados = sorted(dias_dict.keys())
+        # Determinar qué mes corresponde a cada día:
+        # Si hay múltiples meses en el asunto, avanzamos al siguiente mes
+        # cuando el número de día "retrocede" (salto de mes).
+        mes_actual = mes_inicial
+        año_actual = año
+        dia_num_anterior = None
+
+        for dia_num in dias_nums_ordenados:
+            info = dias_dict[dia_num]
+
+            # Detectar salto al mes siguiente: el día actual es menor que el anterior
+            if dia_num_anterior is not None and dia_num < dia_num_anterior:
+                mes_actual += 1
+                if mes_actual > 12:
+                    mes_actual = 1
+                    año_actual += 1
+
             try:
-                fecha = date(año, mes, dia_num)
+                fecha = date(año_actual, mes_actual, dia_num)
                 info["fecha"] = fecha
             except ValueError:
-                logger.error("Fecha inválida: %d/%d/%d", dia_num, mes, año)
-                resultado["errores"].append(f"Fecha inválida: día {dia_num}, mes {mes}, año {año}")
+                logger.error("Fecha inválida: %d/%d/%d", dia_num, mes_actual, año_actual)
+                resultado["errores"].append(
+                    f"Fecha inválida: día {dia_num}, mes {mes_actual}, año {año_actual}"
+                )
                 info["fecha"] = None
-        else:
+
+            dia_num_anterior = dia_num
+            dias_ordenados.append(info)
+    else:
+        for dia_num in sorted(dias_dict.keys()):
+            info = dias_dict[dia_num]
             info["fecha"] = None
-        dias_ordenados.append(info)
+            dias_ordenados.append(info)
 
     resultado["dias"] = dias_ordenados
     logger.info(
