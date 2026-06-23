@@ -1,13 +1,13 @@
 """
 Parser del archivo .eml generado por Google Forms al completar el formulario
-de Plan de Alimentación.
+de Plan de Alimentacion.
 
 Estructura del email:
-- Parte text/plain (base64): lista plana de opciones por día, la seleccionada
+- Parte text/plain (base64): lista plana de opciones por dia, la seleccionada
   aparece PRIMERO en cada bloque.
-- Parte text/html: tiene aria-checked="true" en la opción elegida.
+- Parte text/html: tiene aria-checked="true" en la opcion elegida.
 
-Usamos el HTML porque es más confiable para identificar la selección.
+Usamos el HTML porque es mas confiable para identificar la seleccion.
 """
 import email
 import logging
@@ -18,7 +18,7 @@ from html.parser import HTMLParser
 
 logger = logging.getLogger(__name__)
 
-# Mapeo de nombres de mes en español a número
+# Mapeo de nombres de mes en espanol a numero
 MESES = {
     "enero": 1, "febrero": 2, "marzo": 3, "abril": 4,
     "mayo": 5, "junio": 6, "julio": 7, "agosto": 8,
@@ -47,18 +47,18 @@ class FormResponseParser(HTMLParser):
     def handle_starttag(self, tag, attrs):
         attrs_dict = dict(attrs)
 
-        # Detectar h2 que es título de pregunta
+        # Detectar h2 que es titulo de pregunta
         if tag == "h2":
             self._capturando_titulo = True
             self._titulo_buffer = ""
 
-        # Detectar div[role=radio] — cada opción de respuesta
+        # Detectar div[role=radio] — cada opcion de respuesta
         if tag == "div" and attrs_dict.get("role") == "radio":
             self._opcion_checked = attrs_dict.get("aria-checked") == "true"
             self._opcion_buffer = ""
             self._dentro_td_opcion = False
 
-        # El texto de la opción está en el <td> que sigue al div radio
+        # El texto de la opcion esta en el <td> que sigue al div radio
         if tag == "td":
             self._dentro_td_opcion = True
             self._capturando_opcion = True
@@ -108,8 +108,8 @@ def _extraer_html(msg):
     return ""
 
 
-def _extraer_año_del_asunto(asunto):
-    """Intenta extraer el año desde el asunto del email."""
+def _extraer_anno_del_asunto(asunto):
+    """Intenta extraer el anno desde el asunto del email."""
     match = re.search(r"\b(20\d{2})\b", asunto)
     if match:
         return int(match.group(1))
@@ -117,25 +117,19 @@ def _extraer_año_del_asunto(asunto):
 
 
 def _extraer_mes_del_asunto(asunto):
-    """Extrae el número de mes desde el asunto del email.
+    """Extrae el numero de mes desde el asunto del email.
 
-    Retorna el primer mes encontrado (usado como fallback o cuando el plan
-    es de un solo mes). Para planes que cruzan meses, usar
-    _extraer_rango_meses_del_asunto.
+    Retorna el primer mes encontrado por posicion en el texto.
+    Para planes que cruzan meses, usar _extraer_rango_meses_del_asunto.
     """
-    asunto_lower = asunto.lower()
-    for nombre, numero in MESES.items():
-        if nombre in asunto_lower:
-            return numero
-    return None
+    return (_extraer_rango_meses_del_asunto(asunto) or [None])[0]
 
 
 def _extraer_rango_meses_del_asunto(asunto):
     """Extrae todos los meses mencionados en el asunto, en el orden en que aparecen.
 
-    Retorna una lista de (nombre, numero) según su posición en el texto.
-    Ejemplo: "del 29 de Junio al 10 de Julio" → [(6, pos_junio), (7, pos_julio)]
-    ordenados por posición.
+    Retorna una lista de numeros de mes segun su posicion en el texto.
+    Ejemplo: "del 29 de Junio al 10 de Julio" -> [6, 7]
     """
     asunto_lower = asunto.lower()
     encontrados = []
@@ -143,30 +137,41 @@ def _extraer_rango_meses_del_asunto(asunto):
         pos = asunto_lower.find(nombre)
         if pos != -1:
             encontrados.append((pos, numero))
-    encontrados.sort()  # ordenar por posición de aparición en el texto
+    encontrados.sort()
     return [numero for _, numero in encontrados]
+
+
+def _extraer_dia_inicio_del_asunto(asunto):
+    """Extrae el primer numero de dia mencionado en el asunto.
+
+    Ejemplo: "del 29 de Junio al 10 de Julio" -> 29
+    """
+    match = re.search(r"\b(\d{1,2})\s+de\s+\w+", asunto, re.IGNORECASE)
+    if match:
+        return int(match.group(1))
+    return None
 
 
 def parsear_eml(contenido_bytes):
     """
     Parsea el contenido binario de un archivo .eml y extrae los platos
-    seleccionados por día.
+    seleccionados por dia.
 
     Retorna:
         {
             'asunto': str,
-            'año': int,
+            'anno': int,
             'mes': int,
             'dias': [
                 {
-                    'dia': int,           # número de día del mes
+                    'dia': int,           # numero de dia del mes
                     'fecha': date,
-                    'entrada': str,       # opción seleccionada para Entrada
-                    'fondo': str,         # opción seleccionada para Fondo
+                    'entrada': str,       # opcion seleccionada para Entrada
+                    'fondo': str,         # opcion seleccionada para Fondo
                     'entrada_opciones': [str, str],
                     'fondo_opciones': [str, str],
                 },
-                ...
+                ...\
             ],
             'errores': [str],
         }
@@ -175,7 +180,7 @@ def parsear_eml(contenido_bytes):
 
     resultado = {
         "asunto": "",
-        "año": date.today().year,
+        "anno": date.today().year,
         "mes": None,
         "dias": [],
         "errores": [],
@@ -201,10 +206,13 @@ def parsear_eml(contenido_bytes):
     resultado["asunto"] = asunto
     logger.info("Asunto del email: %s", asunto)
 
-    # Extraer año y mes del asunto
-    resultado["año"] = _extraer_año_del_asunto(asunto)
+    # Extraer anno y meses del asunto
+    anno = _extraer_anno_del_asunto(asunto)
+    resultado["anno"] = anno
+    # Alias para compatibilidad con templates que usen "año"
+    resultado["año"] = anno
+
     meses_rango = _extraer_rango_meses_del_asunto(asunto)
-    # "mes" guarda el primer mes del rango (compatibilidad con el resto del código)
     resultado["mes"] = meses_rango[0] if meses_rango else None
 
     if not resultado["mes"]:
@@ -219,13 +227,13 @@ def parsear_eml(contenido_bytes):
         resultado["errores"].append("El archivo .eml no contiene contenido HTML.")
         return resultado
 
-    logger.debug("HTML extraído: %d caracteres", len(html))
+    logger.debug("HTML extraido: %d caracteres", len(html))
 
     parser = FormResponseParser()
     parser.feed(html)
     logger.info("Preguntas detectadas: %d", len(parser.preguntas))
 
-    # Agrupar preguntas por número de día
+    # Agrupar preguntas por numero de dia
     dias_dict = {}
     for pregunta in parser.preguntas:
         titulo = pregunta["titulo"]  # e.g. "06 Entrada"
@@ -248,50 +256,60 @@ def parsear_eml(contenido_bytes):
         dias_dict[dia_num][f"{tipo}_opciones"] = pregunta["opciones"]
 
         if not pregunta["seleccionada"]:
-            logger.warning("Sin selección detectada para: %s", titulo)
+            logger.warning("Sin seleccion detectada para: %s", titulo)
             resultado["errores"].append(
-                f"No se detectó selección para '{titulo}'. "
-                "Puede requerirse edición manual."
+                f"No se detecto seleccion para '{titulo}'. "
+                "Puede requerirse edicion manual."
             )
 
     # Construir fechas y ordenar
-    # Bug fix: cuando el plan cruza dos meses (ej. "del 29 de Junio al 10 de Julio"),
-    # los días del segundo mes tienen números menores que los del primero.
-    # Detectamos el salto cuando el número de día decrece respecto al anterior.
-    año = resultado["año"]
+    #
+    # Fix bug multi-mes: cuando el plan cruza dos meses (ej. "del 29 de Junio
+    # al 10 de Julio"), los dias del primer mes tienen numeros ALTOS (29, 30)
+    # y los del segundo mes tienen numeros BAJOS (1..10).
+    # Ordenar numericamente pone los dias bajos primero, haciendo imposible
+    # detectar el salto por "retroceso".
+    #
+    # Solucion: extraer el dia de inicio del asunto (ej. 29) como umbral.
+    # - dias >= dia_inicio  →  primer mes del rango
+    # - dias <  dia_inicio  →  segundo mes del rango
+    # Si el asunto no tiene rango (un solo mes), se asigna ese mes a todos.
+
     mes_inicial = resultado["mes"]
     dias_ordenados = []
 
     if mes_inicial:
-        dias_nums_ordenados = sorted(dias_dict.keys())
-        # Determinar qué mes corresponde a cada día:
-        # Si hay múltiples meses en el asunto, avanzamos al siguiente mes
-        # cuando el número de día "retrocede" (salto de mes).
-        mes_actual = mes_inicial
-        año_actual = año
-        dia_num_anterior = None
+        dia_inicio = _extraer_dia_inicio_del_asunto(asunto) if len(meses_rango) > 1 else None
 
-        for dia_num in dias_nums_ordenados:
+        for dia_num in sorted(dias_dict.keys()):
             info = dias_dict[dia_num]
 
-            # Detectar salto al mes siguiente: el día actual es menor que el anterior
-            if dia_num_anterior is not None and dia_num < dia_num_anterior:
-                mes_actual += 1
-                if mes_actual > 12:
-                    mes_actual = 1
-                    año_actual += 1
+            if dia_inicio is not None and len(meses_rango) > 1:
+                # Plan multi-mes: usar umbral para asignar mes correcto
+                if dia_num >= dia_inicio:
+                    mes_actual = meses_rango[0]
+                    anno_actual = anno
+                else:
+                    mes_actual = meses_rango[1]
+                    anno_actual = anno
+                    # Manejar rollover de anno (ej. diciembre -> enero)
+                    if meses_rango[1] < meses_rango[0]:
+                        anno_actual = anno + 1
+            else:
+                # Plan de un solo mes
+                mes_actual = mes_inicial
+                anno_actual = anno
 
             try:
-                fecha = date(año_actual, mes_actual, dia_num)
+                fecha = date(anno_actual, mes_actual, dia_num)
                 info["fecha"] = fecha
             except ValueError:
-                logger.error("Fecha inválida: %d/%d/%d", dia_num, mes_actual, año_actual)
+                logger.error("Fecha invalida: %d/%d/%d", dia_num, mes_actual, anno_actual)
                 resultado["errores"].append(
-                    f"Fecha inválida: día {dia_num}, mes {mes_actual}, año {año_actual}"
+                    f"Fecha invalida: dia {dia_num}, mes {mes_actual}, anno {anno_actual}"
                 )
                 info["fecha"] = None
 
-            dia_num_anterior = dia_num
             dias_ordenados.append(info)
     else:
         for dia_num in sorted(dias_dict.keys()):
@@ -299,9 +317,12 @@ def parsear_eml(contenido_bytes):
             info["fecha"] = None
             dias_ordenados.append(info)
 
+    # Ordenar cronologicamente por fecha real
+    dias_ordenados.sort(key=lambda d: d["fecha"] if d["fecha"] else date.max)
+
     resultado["dias"] = dias_ordenados
     logger.info(
-        "Parseo completado: %d días extraídos, %d errores",
+        "Parseo completado: %d dias extraidos, %d errores",
         len(dias_ordenados), len(resultado["errores"]),
     )
     return resultado
