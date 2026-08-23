@@ -1,6 +1,6 @@
 """
-Vistas para importar el plan de almuerzos desde un archivo .eml
-generado por Google Forms.
+Vistas para importar el plan de almuerzos desde el .eml de confirmación
+de pedido de menú enviado por dietservice.pe.
 
 Flujo:
 1. GET /importar  → formulario de subida del .eml
@@ -44,7 +44,7 @@ def importar_eml(request):
             messages.error(
                 request,
                 "No se pudieron extraer días del archivo. "
-                "Verifica que sea el recibo de respuesta de Google Forms.",
+                "Verifica que sea el correo de confirmación de pedido de menú.",
             )
             return render(request, "importar.html", {"messages": messages.get_messages(request)})
 
@@ -69,13 +69,13 @@ def importar_eml(request):
         # Solo guardamos lo necesario para el confirm
         datos_confirmacion = [
             {
-                "dia": d["dia"],
                 "fecha": d["fecha"].isoformat() if d["fecha"] else None,
                 "entrada": d["entrada"],
                 "fondo": d["fondo"],
+                "cena": d["cena"],
             }
             for d in resultado["dias"]
-            if d["fecha"] and (d["entrada"] or d["fondo"])
+            if d["fecha"] and (d["entrada"] or d["fondo"] or d["cena"])
         ]
 
         return render(
@@ -118,11 +118,11 @@ def confirmar_importacion(request):
         fecha_str = dia.get("fecha")
         entrada = dia.get("entrada") or ""
         fondo = dia.get("fondo") or ""
+        plato_cena = dia.get("cena") or ""
 
         if not fecha_str:
             continue
 
-        from datetime import date
         try:
             from datetime import datetime
             fecha = datetime.strptime(fecha_str, "%Y-%m-%d").date()
@@ -133,17 +133,25 @@ def confirmar_importacion(request):
 
         try:
             semana = fecha.isocalendar().week
+            defaults = {
+                "semana": semana,
+                "almuerzo": 1,        # se marca como pedido de almuerzo
+                "entrada": entrada,
+                "fondo": fondo,
+            }
+            if plato_cena:
+                defaults["cena"] = 1  # se marca como pedido de cena
+                defaults["plato_cena"] = plato_cena
+
             obj, created = Pedido.objects.update_or_create(
                 fecha=fecha,
-                defaults={
-                    "semana": semana,
-                    "almuerzo": 1,        # se marca como pedido de almuerzo
-                    "entrada": entrada,
-                    "fondo": fondo,
-                },
+                defaults=defaults,
             )
             accion = "creado" if created else "actualizado"
-            logger.debug("Pedido %s para %s — entrada: %s, fondo: %s", accion, fecha, entrada, fondo)
+            logger.debug(
+                "Pedido %s para %s — entrada: %s, fondo: %s, cena: %s",
+                accion, fecha, entrada, fondo, plato_cena or "-",
+            )
             guardados += 1
         except Exception as e:
             logger.error("Error guardando pedido para %s: %s", fecha_str, e)

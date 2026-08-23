@@ -4,8 +4,8 @@
 {% block content %}
 <h2 class="mb-1">Importar plan de almuerzos</h2>
 <p class="text-muted mb-4">
-  Sube el archivo <code>.eml</code> del correo de confirmación de Google Forms
-  para importar automáticamente las entradas y fondos de cada día.
+  Sube el archivo <code>.eml</code> del correo "Tu pedido de menú quedó registrado"
+  de dietservice.pe para importar automáticamente entrada, fondo y cena de cada día.
 </p>
 
 {% for message in messages %}
@@ -21,7 +21,7 @@
       {% csrf_token %}
       <div class="mb-3">
         <label for="archivo_eml" class="form-label fw-semibold">
-          Archivo de confirmación de Google Forms
+          Correo de confirmación de pedido de menú
         </label>
         <input
           type="file"
