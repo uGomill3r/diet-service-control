@@ -25,6 +25,19 @@
     <label class="form-label">Monto</label>
     <input type="number" name="monto" class="form-control" value="{{ pago[2] }}" step="0.01" min="0" required>
   </div>
+  <div class="col-md-8">
+    <label class="form-label">Ciclo de pago asociado</label>
+    <select name="ciclo_id" class="form-select">
+      <option value="" {% if not pago[4] %}selected{% endif %}>-- Pendiente (sin ciclo) --</option>
+      {% for id, etiqueta in ciclos %}
+        <option value="{{ id }}" {% if pago[4] == id %}selected{% endif %}>{{ etiqueta }}</option>
+      {% endfor %}
+    </select>
+    <div class="form-text">
+      Si el ciclo correcto no tiene la fecha de inicio esperada, puedes
+      <a href="/pagos" class="link-secondary">corregirla desde la lista de ciclos</a>.
+    </div>
+  </div>
   <div class="col-12 text-end">
     <button type="submit" class="btn btn-primary">Guardar cambios</button>
     <a href="/pagos" class="btn btn-secondary">Cancelar</a>

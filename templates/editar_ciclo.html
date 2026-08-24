@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Editar ciclo de pago{% endblock %}
+{% block content %}
+
+<h2 class="mb-1">Editar ciclo de pago</h2>
+<p class="text-muted mb-4">
+  Tipo: <span class="badge {% if ciclo.tipo == 'almuerzo' %}bg-success{% else %}bg-primary{% endif %}">
+    {{ ciclo.tipo | capitalize }}
+  </span>
+</p>
+
+{% for message in messages %}
+  <div class="alert alert-danger">{{ message }}</div>
+{% endfor %}
+
+<div class="alert alert-warning">
+  <i class="bi bi-exclamation-triangle-fill me-2"></i>
+  Cambiar estas fechas afecta directamente qué entregas se consideran
+  dentro de este ciclo en los reportes. Úsalo solo para corregir un ciclo
+  que quedó con fechas incorrectas (por ejemplo, por un pago registrado
+  con la fecha equivocada).
+</div>
+
+<form method="POST" class="row g-3">
+  {% csrf_token %}
+  <div class="col-md-6">
+    <label class="form-label">Fecha de inicio</label>
+    <input type="date" name="fecha_inicio" class="form-control" value="{{ ciclo.fecha_inicio }}" required>
+  </div>
+  <div class="col-md-6">
+    <label class="form-label">Fecha de fin</label>
+    <input type="date" name="fecha_fin" class="form-control" value="{{ ciclo.fecha_fin or '' }}">
+    <div class="form-text">Déjala vacía si el ciclo sigue abierto.</div>
+  </div>
+  <div class="col-12 text-end">
+    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+    <a href="/pagos" class="btn btn-secondary">Cancelar</a>
+  </div>
+</form>
+
+{% endblock %}

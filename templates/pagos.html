@@ -96,6 +96,45 @@
   </li>
 </ul>
 
+<h3 class="mt-5">Ciclos de pago</h3>
+<div class="table-responsive mb-4">
+  <table class="table table-bordered align-middle text-center">
+    <thead class="table-dark">
+      <tr>
+        <th>Tipo</th>
+        <th>Inicio</th>
+        <th>Fin</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in ciclos %}
+      <tr>
+        <td>
+          <span class="badge {% if c[1] == 'almuerzo' %}bg-success{% else %}bg-primary{% endif %}">
+            {{ c[1] | capitalize }}
+          </span>
+        </td>
+        <td>{{ c[2] }}</td>
+        <td>
+          {% if c[3] == '—' %}
+            <span class="badge bg-warning text-dark">Abierto</span>
+          {% else %}
+            {{ c[3] }}
+          {% endif %}
+        </td>
+        <td>
+          <a href="/pagos/ciclo/editar/{{ c[0] }}" class="btn btn-sm btn-outline-secondary">Editar fechas</a>
+        </td>
+      </tr>
+      {% endfor %}
+      {% if ciclos | length == 0 %}
+      <tr><td colspan="4">No hay ciclos de pago registrados aún.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
 <a href="/" class="btn btn-secondary">Volver al inicio</a>
 
 {% endblock %}

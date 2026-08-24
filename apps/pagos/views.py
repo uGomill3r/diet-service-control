@@ -7,6 +7,7 @@ from datetime import datetime
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
+from django.contrib import messages
 from django.db.models import Sum
 from apps.core.decorators import protegido
 from apps.core.models import Pago, CicloPago, Pedido, Log
@@ -130,8 +131,24 @@ def pagos(request):
         for row in Pago.objects.values("tipo").annotate(total=Sum("monto"))
     }
 
-    logger.debug("Listando %d pagos", len(pagos_list))
-    return render(request, "pagos.html", {"pagos": pagos_list, "totales": totales, "aviso": aviso})
+    # Listado de ciclos de pago para revisión/corrección manual de fechas
+    ciclos_qs = CicloPago.objects.order_by("-fecha_inicio")
+    ciclos_list = [
+        (
+            c.id,
+            c.tipo,
+            formatear_fecha(c.fecha_inicio),
+            formatear_fecha(c.fecha_fin) if c.fecha_fin else "—",
+        )
+        for c in ciclos_qs
+    ]
+
+    logger.debug("Listando %d pagos y %d ciclos", len(pagos_list), len(ciclos_list))
+    return render(
+        request,
+        "pagos.html",
+        {"pagos": pagos_list, "totales": totales, "aviso": aviso, "ciclos": ciclos_list},
+    )
 
 
 @protegido
@@ -160,7 +177,7 @@ def editar_pago(request, id):
             id, fecha_original, tipo_original, nueva_fecha, nuevo_tipo,
         )
 
-        # Asignar ciclo manualmente si se seleccionó uno, o dejar None
+        # Asignar ciclo manualmente si se seleccionó uno, o dejar None (pendiente)
         ciclo_nuevo = None
         if nuevo_ciclo_id:
             try:
@@ -168,6 +185,11 @@ def editar_pago(request, id):
                 logger.info("Ciclo asignado manualmente — id=%d", ciclo_nuevo.id)
             except CicloPago.DoesNotExist:
                 logger.warning("Ciclo id=%s no encontrado al editar pago id=%d", nuevo_ciclo_id, id)
+        elif pago_obj.ciclo_id:
+            logger.warning(
+                "Pago id=%d quedará sin ciclo asociado (antes: ciclo id=%d)",
+                id, pago_obj.ciclo_id,
+            )
 
         pago_obj.fecha = nueva_fecha
         pago_obj.tipo = nuevo_tipo
@@ -200,3 +222,53 @@ def editar_pago(request, id):
         "editar_pago.html",
         {"pago": pago_data, "pago_id": id, "ciclos": ciclos},
     )
+
+
+@protegido
+def editar_ciclo(request, id):
+    """
+    Permite corregir manualmente las fechas de inicio/fin de un ciclo de pago.
+
+    Necesario para casos donde un pago se registró con una fecha incorrecta
+    y ya generó (o cerró) un ciclo con un límite equivocado: el ciclo queda
+    "pegado" a esa fecha porque su fecha_inicio/fecha_fin es independiente
+    de la fecha del pago que lo originó.
+    """
+    ciclo_obj = get_object_or_404(CicloPago, id=id)
+
+    if request.method == "POST":
+        nueva_fecha_inicio = request.POST.get("fecha_inicio")
+        nueva_fecha_fin = request.POST.get("fecha_fin") or None
+
+        anterior_inicio = ciclo_obj.fecha_inicio
+        anterior_fin = ciclo_obj.fecha_fin
+
+        logger.info(
+            "Editando ciclo id=%d (%s) — inicio %s -> %s, fin %s -> %s",
+            id, ciclo_obj.tipo, anterior_inicio, nueva_fecha_inicio, anterior_fin, nueva_fecha_fin,
+        )
+
+        if nueva_fecha_fin and nueva_fecha_fin < nueva_fecha_inicio:
+            logger.error(
+                "Fecha fin (%s) anterior a fecha inicio (%s) al editar ciclo id=%d",
+                nueva_fecha_fin, nueva_fecha_inicio, id,
+            )
+            messages.error(request, "La fecha de fin no puede ser anterior a la fecha de inicio.")
+            return render(request, "editar_ciclo.html", {"ciclo": ciclo_obj, "ciclo_id": id})
+
+        ciclo_obj.fecha_inicio = nueva_fecha_inicio
+        ciclo_obj.fecha_fin = nueva_fecha_fin
+        ciclo_obj.save()
+
+        Log.objects.create(
+            timestamp=timezone.now(),
+            accion="Ciclo de pago editado",
+            detalle=(
+                f"Ciclo {id} ({ciclo_obj.tipo}): inicio {anterior_inicio} -> {nueva_fecha_inicio}, "
+                f"fin {anterior_fin or '—'} -> {nueva_fecha_fin or '—'}"
+            ),
+        )
+        logger.info("Ciclo id=%d actualizado correctamente", id)
+        return redirect(reverse("pagos"))
+
+    return render(request, "editar_ciclo.html", {"ciclo": ciclo_obj, "ciclo_id": id})
