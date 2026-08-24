@@ -9,6 +9,7 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ static('style.css') }}">
     <!-- Favicon e ícono para dispositivos Apple -->
     <link rel="icon" type="image/png" href="{{ static('favicon.png') }}">
@@ -115,6 +116,31 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+    <script>
+      // Fuerza el formato DD/MM/AAAA en todos los inputs de fecha, sin
+      // depender del locale del navegador/SO (que a veces muestra MM/DD/AAAA
+      // aunque la página esté en español). El input original sigue
+      // enviando el valor en formato ISO (YYYY-MM-DD) al servidor.
+      document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.flatpickr-date').forEach(function (el) {
+          var esRequerido = el.required;
+          el.required = false; // el input original queda oculto; no debe validarlo el navegador
+          var fp = flatpickr(el, {
+            dateFormat: 'Y-m-d',
+            altInput: true,
+            altFormat: 'd/m/Y',
+            altInputClass: el.className.replace('flatpickr-date', '').trim(),
+            locale: 'es',
+            allowInput: true,
+          });
+          if (esRequerido && fp.altInput) {
+            fp.altInput.required = true; // la validación nativa se hace sobre el campo visible
+          }
+        });
+      });
+    </script>
     <footer class="bg-dark text-white text-center py-3 mt-5">
       <div class="container">
         <small>&copy; 2025 DietServiceControl · Todos los derechos reservados</small>

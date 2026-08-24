@@ -25,11 +25,11 @@
   {% csrf_token %}
   <div class="col-md-6">
     <label class="form-label">Fecha de inicio</label>
-    <input type="date" name="fecha_inicio" class="form-control" value="{{ ciclo.fecha_inicio }}" required>
+    <input type="text" name="fecha_inicio" class="form-control flatpickr-date" value="{{ ciclo.fecha_inicio }}" required>
   </div>
   <div class="col-md-6">
     <label class="form-label">Fecha de fin</label>
-    <input type="date" name="fecha_fin" class="form-control" value="{{ ciclo.fecha_fin or '' }}">
+    <input type="text" name="fecha_fin" class="form-control flatpickr-date" value="{{ ciclo.fecha_fin or '' }}" placeholder="DD/MM/AAAA">
     <div class="form-text">Déjala vacía si el ciclo sigue abierto.</div>
   </div>
   <div class="col-12 text-end">
