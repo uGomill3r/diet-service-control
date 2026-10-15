@@ -4,6 +4,7 @@ Migrado desde blueprints/dashboard.py de Flask.
 """
 import logging
 from datetime import datetime
+from django.db.models import Q, Sum
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from apps.core.decorators import protegido
@@ -22,36 +23,74 @@ def index(request):
     return redirect(reverse("dashboard"))
 
 
+def _ciclo_vigente(tipo, hoy):
+    """
+    Devuelve el ciclo de pago vigente para un tipo ('almuerzo' o 'cena').
+
+    Vigente = fecha_inicio <= hoy y (fecha_fin nula o fecha_fin >= hoy).
+    Si ninguno contiene la fecha de hoy (p. ej. el ciclo ya cerró), usa el
+    último ciclo ya iniciado. Devuelve None si no hay ciclos.
+    """
+    base = CicloPago.objects.filter(tipo=tipo, fecha_inicio__lte=hoy).order_by("-fecha_inicio")
+    ciclo = base.filter(Q(fecha_fin__isnull=True) | Q(fecha_fin__gte=hoy)).first()
+    if ciclo is None:
+        ciclo = base.first()
+        if ciclo is not None:
+            logger.warning(
+                "Ningún ciclo '%s' contiene %s — usando el último (id=%d)",
+                tipo, hoy, ciclo.id,
+            )
+    logger.debug("Ciclo vigente '%s': %s", tipo, ciclo.id if ciclo else None)
+    return ciclo
+
+
+def _rango_ciclo(ciclo):
+    """Devuelve (inicio, fin) del ciclo; sin ciclo, rango abierto desde la fecha mínima."""
+    if ciclo is None:
+        return datetime.min.date(), None
+    return normalizar_fecha(ciclo.fecha_inicio), (
+        normalizar_fecha(ciclo.fecha_fin) if ciclo.fecha_fin else None
+    )
+
+
+def _en_rango(fecha, inicio, fin):
+    """True si la fecha está dentro de [inicio, fin] (fin None = sin límite)."""
+    return fecha >= inicio and (fin is None or fecha <= fin)
+
+
+def _pagos_ciclo(tipo, ciclo):
+    """Suma la cantidad pagada asociada al ciclo (por FK, no por fecha del pago)."""
+    if ciclo is None:
+        return Pago.objects.filter(tipo=tipo).aggregate(total=Sum("cantidad"))["total"] or 0
+    return Pago.objects.filter(ciclo=ciclo).aggregate(total=Sum("cantidad"))["total"] or 0
+
+
 @protegido
 def dashboard(request):
     """Vista principal del resumen de pedidos, entregas y pagos."""
     logger.info("Cargando dashboard")
 
-    # Obtener fecha de inicio del último ciclo por tipo
-    from django.db.models import Max
-    ciclos_qs = CicloPago.objects.values("tipo").annotate(max_inicio=Max("fecha_inicio"))
-    ciclos = {c["tipo"]: c["max_inicio"] for c in ciclos_qs}
+    hoy_date = datetime.now().date()
 
-    fecha_min = datetime.min.date()
-    alm_ciclo = ciclos.get("almuerzo", fecha_min)
-    cen_ciclo = ciclos.get("cena", fecha_min)
-    logger.debug("Ciclos activos — almuerzo: %s, cena: %s", alm_ciclo, cen_ciclo)
+    # Ciclo vigente por tipo (respeta fecha_fin editada manualmente)
+    ciclo_alm = _ciclo_vigente("almuerzo", hoy_date)
+    ciclo_cen = _ciclo_vigente("cena", hoy_date)
+    alm_ini, alm_fin = _rango_ciclo(ciclo_alm)
+    cen_ini, cen_fin = _rango_ciclo(ciclo_cen)
+    logger.debug(
+        "Rangos — almuerzo: %s a %s, cena: %s a %s",
+        alm_ini, alm_fin, cen_ini, cen_fin,
+    )
 
-    # Pagos desde inicio de cada ciclo
-    from django.db.models import Sum
-    pagos_alm = Pago.objects.filter(tipo="almuerzo", fecha__gte=alm_ciclo).aggregate(
-        total=Sum("cantidad")
-    )["total"] or 0
-    pagos_cen = Pago.objects.filter(tipo="cena", fecha__gte=cen_ciclo).aggregate(
-        total=Sum("cantidad")
-    )["total"] or 0
+    # Pagos asociados a cada ciclo vigente
+    pagos_alm = _pagos_ciclo("almuerzo", ciclo_alm)
+    pagos_cen = _pagos_ciclo("cena", ciclo_cen)
 
     # Todos los pedidos y entregas
     pedidos_qs = Pedido.objects.values_list("fecha", "almuerzo", "cena")
     entregas_qs = Entrega.objects.values_list("fecha", "entregado_almuerzo", "entregado_cena")
     entregas = {normalizar_fecha(row[0]): (row[1] or 0, row[2] or 0) for row in entregas_qs}
 
-    hoy_date = datetime.now().date()
     alm_pedidos = alm_entregados = alm_por_entregar = 0
     cen_pedidos = cen_entregados = cen_por_entregar = 0
     pedidos_pendientes_raw = []
@@ -63,13 +102,13 @@ def dashboard(request):
         a_pedido = a_pedido or 0
         c_pedido = c_pedido or 0
 
-        if fecha_date >= alm_ciclo:
+        if _en_rango(fecha_date, alm_ini, alm_fin):
             alm_pedidos += a_pedido
             alm_entregados += a_entregado
             if a_pedido and not a_entregado and fecha_date >= hoy_date:
                 alm_por_entregar += 1
 
-        if fecha_date >= cen_ciclo:
+        if _en_rango(fecha_date, cen_ini, cen_fin):
             cen_pedidos += c_pedido
             cen_entregados += c_entregado
             if c_pedido and not c_entregado and fecha_date >= hoy_date:
@@ -99,7 +138,7 @@ def dashboard(request):
     alm_saldo = pagos_alm - alm_entregados - alm_por_entregar
     cen_saldo = pagos_cen - cen_entregados - cen_por_entregar
 
-    fecha_ultimo_pago = alm_ciclo.strftime("%d-%m-%Y") if alm_ciclo != fecha_min else "—"
+    fecha_ultimo_pago = alm_ini.strftime("%d-%m-%Y") if ciclo_alm else "—"
     logger.info(
         "Dashboard cargado — alm saldo: %d, cen saldo: %d, pendientes: %d",
         alm_saldo, cen_saldo, len(pedidos_pendientes_raw),

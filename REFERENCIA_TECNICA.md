@@ -47,8 +47,11 @@ Cada app sigue el mismo patrón: `views.py` (lógica), `urls.py` (rutas),
 - **Modelos usados:** `Pedido`, `Entrega`, `Pago`, `CicloPago`
 - **Utilidades:** `normalizar_fecha`, `formatear_fecha_con_dia` (`apps/core/utils.py`)
 - **Templates:** `dashboard.html`, `pedidos_siguientes.html`
-- **Qué calcula:** saldo de almuerzos/cenas pagados vs. entregados desde el
-  inicio del ciclo activo, y listas de pendientes/por-validar.
+- **Qué calcula:** saldo de almuerzos/cenas pagados vs. entregados dentro del
+  ciclo vigente (el que contiene la fecha de hoy; si ninguno, el último ya
+  iniciado), y listas de pendientes/por-validar. Los pagos se suman por
+  `Pago.ciclo` y pedidos/entregas se acotan a `[fecha_inicio, fecha_fin]`.
+  Helper: `_ciclo_vigente(tipo, hoy)`.
 - **Tocar esto si:** cambia la fórmula de saldo, o qué cuenta como "pendiente".
 
 ## 3. Vista mensual (calendario)
