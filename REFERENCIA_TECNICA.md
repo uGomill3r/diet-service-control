@@ -53,6 +53,9 @@ Cada app sigue el mismo patrón: `views.py` (lógica), `urls.py` (rutas),
   `Pago.ciclo` y pedidos/entregas se acotan a `[fecha_inicio, fecha_fin]`.
   Helper: `_ciclo_vigente(tipo, hoy)`. Además expone la fecha de inicio del
   ciclo vigente por tipo (`fecha_ciclo_almuerzo`, `fecha_ciclo_cena`).
+  `_ciclos_futuros(hoy, pedidos)` arma la lista `ciclos_futuros` (ciclos con
+  `fecha_inicio` posterior a hoy que ya tienen días programados) para la
+  segunda pestaña de contadores.
 - **Tocar esto si:** cambia la fórmula de saldo, o qué cuenta como "pendiente".
 
 ## 3. Vista mensual (calendario)

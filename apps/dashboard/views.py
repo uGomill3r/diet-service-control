@@ -3,7 +3,7 @@ Vistas del dashboard principal.
 Migrado desde blueprints/dashboard.py de Flask.
 """
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.db.models import Q, Sum
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -65,6 +65,56 @@ def _pagos_ciclo(tipo, ciclo):
     return Pago.objects.filter(ciclo=ciclo).aggregate(total=Sum("cantidad"))["total"] or 0
 
 
+def _ciclos_futuros(hoy, pedidos):
+    """
+    Lista los ciclos futuros (fecha_inicio > hoy) que ya tienen días programados.
+
+    `pedidos` es una lista de tuplas (fecha, almuerzo, cena). Si un ciclo futuro
+    no tiene fecha_fin, se acota al día anterior al inicio del siguiente ciclo
+    del mismo tipo. Solo se devuelven ciclos con al menos un día programado.
+    """
+    resultado = []
+    for tipo, idx in (("almuerzo", 1), ("cena", 2)):
+        futuros = list(
+            CicloPago.objects.filter(tipo=tipo, fecha_inicio__gt=hoy).order_by("fecha_inicio")
+        )
+        for i, ciclo in enumerate(futuros):
+            inicio = normalizar_fecha(ciclo.fecha_inicio)
+            if ciclo.fecha_fin:
+                fin = normalizar_fecha(ciclo.fecha_fin)
+            elif i + 1 < len(futuros):
+                fin = normalizar_fecha(futuros[i + 1].fecha_inicio) - timedelta(days=1)
+            else:
+                fin = None
+
+            fechas = sorted(
+                normalizar_fecha(p[0])
+                for p in pedidos
+                if (p[idx] or 0) and _en_rango(normalizar_fecha(p[0]), inicio, fin)
+            )
+            if not fechas:
+                logger.debug("Ciclo futuro id=%d (%s) sin programación", ciclo.id, tipo)
+                continue
+
+            pagados = _pagos_ciclo(tipo, ciclo)
+            resultado.append(
+                {
+                    "tipo": tipo,
+                    "inicio_date": inicio,
+                    "inicio": inicio.strftime("%d-%m-%Y"),
+                    "fin": fin.strftime("%d-%m-%Y") if ciclo.fecha_fin else "—",
+                    "pagados": pagados,
+                    "programados": len(fechas),
+                    "saldo": pagados - len(fechas),
+                    "proximas": [formatear_fecha_con_dia(f) for f in fechas[:5]],
+                }
+            )
+
+    resultado.sort(key=lambda c: c["inicio_date"])
+    logger.info("Ciclos futuros con programación: %d", len(resultado))
+    return resultado
+
+
 @protegido
 def dashboard(request):
     """Vista principal del resumen de pedidos, entregas y pagos."""
@@ -87,7 +137,7 @@ def dashboard(request):
     pagos_cen = _pagos_ciclo("cena", ciclo_cen)
 
     # Todos los pedidos y entregas
-    pedidos_qs = Pedido.objects.values_list("fecha", "almuerzo", "cena")
+    pedidos_qs = list(Pedido.objects.values_list("fecha", "almuerzo", "cena"))
     entregas_qs = Entrega.objects.values_list("fecha", "entregado_almuerzo", "entregado_cena")
     entregas = {normalizar_fecha(row[0]): (row[1] or 0, row[2] or 0) for row in entregas_qs}
 
@@ -135,6 +185,8 @@ def dashboard(request):
         for f, e in sorted(pedidos_por_validar_raw, key=lambda x: x[0])[:5]
     ]
 
+    ciclos_futuros = _ciclos_futuros(hoy_date, pedidos_qs)
+
     alm_saldo = pagos_alm - alm_entregados - alm_por_entregar
     cen_saldo = pagos_cen - cen_entregados - cen_por_entregar
 
@@ -163,6 +215,7 @@ def dashboard(request):
             "alm_saldo": alm_saldo,
             "cen_saldo": cen_saldo,
             "fecha_ultimo_pago": fecha_ultimo_pago,
+            "ciclos_futuros": ciclos_futuros,
             "fecha_ciclo_almuerzo": fecha_ciclo_almuerzo,
             "fecha_ciclo_cena": fecha_ciclo_cena,
             "pedidos_pendientes": pedidos_pendientes,
