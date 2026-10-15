@@ -44,13 +44,32 @@ def _ciclo_vigente(tipo, hoy):
     return ciclo
 
 
+def _fin_efectivo(ciclo):
+    """
+    Devuelve la fecha de fin efectiva del ciclo.
+
+    Si no tiene fecha_fin pero existe un ciclo posterior del mismo tipo, termina
+    el día anterior al inicio de ese ciclo. Sin ciclo posterior, no tiene límite.
+    """
+    if ciclo.fecha_fin:
+        return normalizar_fecha(ciclo.fecha_fin)
+    siguiente = (
+        CicloPago.objects.filter(tipo=ciclo.tipo, fecha_inicio__gt=ciclo.fecha_inicio)
+        .order_by("fecha_inicio")
+        .first()
+    )
+    if siguiente is None:
+        return None
+    fin = normalizar_fecha(siguiente.fecha_inicio) - timedelta(days=1)
+    logger.debug("Ciclo id=%d sin fecha_fin — acotado a %s por ciclo id=%d", ciclo.id, fin, siguiente.id)
+    return fin
+
+
 def _rango_ciclo(ciclo):
     """Devuelve (inicio, fin) del ciclo; sin ciclo, rango abierto desde la fecha mínima."""
     if ciclo is None:
         return datetime.min.date(), None
-    return normalizar_fecha(ciclo.fecha_inicio), (
-        normalizar_fecha(ciclo.fecha_fin) if ciclo.fecha_fin else None
-    )
+    return normalizar_fecha(ciclo.fecha_inicio), _fin_efectivo(ciclo)
 
 
 def _en_rango(fecha, inicio, fin):

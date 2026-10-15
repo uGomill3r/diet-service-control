@@ -4,48 +4,104 @@
 
 <h2 class="mb-4">Resumen</h2>
 
-<div class="table-responsive">
-  <table class="table table-bordered align-middle text-center">
-    <thead class="table-dark">
-      <tr>
-        <th>Ítem</th>
-        <th>Pagados</th>
-        <th>Pedidos</th>
-        <th>Entregados</th>
-        <th>Por entregar</th>
-        <th>Saldo</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Almuerzos</td>
-        <td><span class="badge bg-success">{{ alm_pagados }}</span></td>
-        <td><span class="badge bg-secondary">{{ alm_pedidos }}</span></td>
-        <td><span class="badge bg-success">{{ alm_entregados }}</span></td>
-        <td><span class="badge bg-warning">{{ alm_por_entregar }}</span></td>
-        <td>
-          <span class="badge {% if alm_saldo < 0 %}bg-danger{% else %}bg-success{% endif %}">
-            {{ alm_saldo }}
-          </span>
-        </td>
-      </tr>
-      <tr>
-        <td>Cenas</td>
-        <td><span class="badge bg-success">{{ cen_pagados }}</span></td>
-        <td><span class="badge bg-secondary">{{ cen_pedidos }}</span></td>
-        <td><span class="badge bg-success">{{ cen_entregados }}</span></td>
-        <td><span class="badge bg-warning">{{ cen_por_entregar }}</span></td>
-        <td>
-          <span class="badge {% if cen_saldo < 0 %}bg-danger{% else %}bg-success{% endif %}">
-            {{ cen_saldo }}
-          </span>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+<ul class="nav nav-tabs mb-3" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-vigente" type="button" role="tab">Ciclo vigente</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-futuros" type="button" role="tab">
+      Ciclos futuros
+      {% if ciclos_futuros %}<span class="badge bg-secondary">{{ ciclos_futuros | length }}</span>{% endif %}
+    </button>
+  </li>
+</ul>
 
-<p class="mt-3"><strong>Último pago registrado:</strong> {{ fecha_ultimo_pago }}</p>
+<div class="tab-content">
+  <div class="tab-pane fade show active" id="tab-vigente" role="tabpanel">
+    <div class="table-responsive">
+      <table class="table table-bordered align-middle text-center">
+        <thead class="table-dark">
+          <tr>
+            <th>Ítem</th>
+            <th>Ciclo desde</th>
+            <th>Pagados</th>
+            <th>Pedidos</th>
+            <th>Entregados</th>
+            <th>Por entregar</th>
+            <th>Saldo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Almuerzos</td>
+            <td>{{ fecha_ciclo_almuerzo }}</td>
+            <td><span class="badge bg-success">{{ alm_pagados }}</span></td>
+            <td><span class="badge bg-secondary">{{ alm_pedidos }}</span></td>
+            <td><span class="badge bg-success">{{ alm_entregados }}</span></td>
+            <td><span class="badge bg-warning">{{ alm_por_entregar }}</span></td>
+            <td>
+              <span class="badge {% if alm_saldo < 0 %}bg-danger{% else %}bg-success{% endif %}">
+                {{ alm_saldo }}
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <td>Cenas</td>
+            <td>{{ fecha_ciclo_cena }}</td>
+            <td><span class="badge bg-success">{{ cen_pagados }}</span></td>
+            <td><span class="badge bg-secondary">{{ cen_pedidos }}</span></td>
+            <td><span class="badge bg-success">{{ cen_entregados }}</span></td>
+            <td><span class="badge bg-warning">{{ cen_por_entregar }}</span></td>
+            <td>
+              <span class="badge {% if cen_saldo < 0 %}bg-danger{% else %}bg-success{% endif %}">
+                {{ cen_saldo }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="tab-pane fade" id="tab-futuros" role="tabpanel">
+    {% if ciclos_futuros %}
+    <div class="table-responsive">
+      <table class="table table-bordered align-middle text-center">
+        <thead class="table-dark">
+          <tr>
+            <th>Ítem</th>
+            <th>Ciclo desde</th>
+            <th>Hasta</th>
+            <th>Pagados</th>
+            <th>Programados</th>
+            <th>Saldo</th>
+            <th>Próximas fechas</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in ciclos_futuros %}
+          <tr>
+            <td>{{ c.tipo | capitalize }}s</td>
+            <td>{{ c.inicio }}</td>
+            <td>{{ c.fin }}</td>
+            <td><span class="badge bg-success">{{ c.pagados }}</span></td>
+            <td><span class="badge bg-secondary">{{ c.programados }}</span></td>
+            <td>
+              <span class="badge {% if c.saldo < 0 %}bg-danger{% else %}bg-success{% endif %}">
+                {{ c.saldo }}
+              </span>
+            </td>
+            <td class="text-start small">{{ c.proximas | join(", ") }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-muted mb-0">No hay ciclos futuros con programación.</p>
+    {% endif %}
+  </div>
+</div>
 
 <h3 class="mt-4">Pedidos siguientes</h3>
 <div class="alert alert-warning">

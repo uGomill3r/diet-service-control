@@ -95,8 +95,9 @@ variables `DB_*` del `.env`.
 
 ## Funcionalidades principales
 
-- **Dashboard:** saldo de almuerzos/cenas pagados vs. entregados desde el
-  inicio del ciclo activo, y listado de pendientes.
+- **Dashboard:** saldo de almuerzos/cenas pagados vs. entregados dentro del
+  ciclo vigente (con su fecha de inicio en la tabla), pestaña de ciclos
+  futuros que ya tienen programación, y listado de pendientes.
 - **Vistas mensual y semanal:** estado visual (entregado / pendiente / no
   entregado) de cada día hábil.
 - **Edición de día:** pedido (entrada, fondo, cena) y entrega de una fecha

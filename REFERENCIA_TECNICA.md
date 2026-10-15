@@ -46,12 +46,14 @@ Cada app sigue el mismo patrón: `views.py` (lógica), `urls.py` (rutas),
 - **Módulo:** `apps/dashboard/views.py` → `dashboard()`, `pedidos_siguientes()`
 - **Modelos usados:** `Pedido`, `Entrega`, `Pago`, `CicloPago`
 - **Utilidades:** `normalizar_fecha`, `formatear_fecha_con_dia` (`apps/core/utils.py`)
-- **Templates:** `dashboard.html`, `pedidos_siguientes.html`
+- **Templates:** `dashboard.html` (pestañas «Ciclo vigente» / «Ciclos futuros», requiere
+  el JS de Bootstrap en `base.html`), `pedidos_siguientes.html`
 - **Qué calcula:** saldo de almuerzos/cenas pagados vs. entregados dentro del
   ciclo vigente (el que contiene la fecha de hoy; si ninguno, el último ya
   iniciado), y listas de pendientes/por-validar. Los pagos se suman por
   `Pago.ciclo` y pedidos/entregas se acotan a `[fecha_inicio, fecha_fin]`.
-  Helper: `_ciclo_vigente(tipo, hoy)`. Además expone la fecha de inicio del
+  Helper: `_ciclo_vigente(tipo, hoy)`; un ciclo sin `fecha_fin` termina el día
+  anterior al inicio del siguiente ciclo del mismo tipo (`_fin_efectivo`). Además expone la fecha de inicio del
   ciclo vigente por tipo (`fecha_ciclo_almuerzo`, `fecha_ciclo_cena`).
   `_ciclos_futuros(hoy, pedidos)` arma la lista `ciclos_futuros` (ciclos con
   `fecha_inicio` posterior a hoy que ya tienen días programados) para la
