@@ -51,7 +51,8 @@ Cada app sigue el mismo patrón: `views.py` (lógica), `urls.py` (rutas),
   ciclo vigente (el que contiene la fecha de hoy; si ninguno, el último ya
   iniciado), y listas de pendientes/por-validar. Los pagos se suman por
   `Pago.ciclo` y pedidos/entregas se acotan a `[fecha_inicio, fecha_fin]`.
-  Helper: `_ciclo_vigente(tipo, hoy)`.
+  Helper: `_ciclo_vigente(tipo, hoy)`. Además expone la fecha de inicio del
+  ciclo vigente por tipo (`fecha_ciclo_almuerzo`, `fecha_ciclo_cena`).
 - **Tocar esto si:** cambia la fórmula de saldo, o qué cuenta como "pendiente".
 
 ## 3. Vista mensual (calendario)

@@ -138,7 +138,11 @@ def dashboard(request):
     alm_saldo = pagos_alm - alm_entregados - alm_por_entregar
     cen_saldo = pagos_cen - cen_entregados - cen_por_entregar
 
-    fecha_ultimo_pago = alm_ini.strftime("%d-%m-%Y") if ciclo_alm else "—"
+    # Fecha de inicio del ciclo vigente por tipo (reemplaza al "último pago")
+    fecha_ciclo_almuerzo = alm_ini.strftime("%d-%m-%Y") if ciclo_alm else "—"
+    fecha_ciclo_cena = cen_ini.strftime("%d-%m-%Y") if ciclo_cen else "—"
+    # Compatibilidad con el template actual: texto combinado en una sola variable
+    fecha_ultimo_pago = f"Almuerzo {fecha_ciclo_almuerzo} · Cena {fecha_ciclo_cena}"
     logger.info(
         "Dashboard cargado — alm saldo: %d, cen saldo: %d, pendientes: %d",
         alm_saldo, cen_saldo, len(pedidos_pendientes_raw),
@@ -159,6 +163,8 @@ def dashboard(request):
             "alm_saldo": alm_saldo,
             "cen_saldo": cen_saldo,
             "fecha_ultimo_pago": fecha_ultimo_pago,
+            "fecha_ciclo_almuerzo": fecha_ciclo_almuerzo,
+            "fecha_ciclo_cena": fecha_ciclo_cena,
             "pedidos_pendientes": pedidos_pendientes,
             "pedidos_por_validar": pedidos_por_validar,
         },
